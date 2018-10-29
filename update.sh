@@ -21,7 +21,7 @@ else
     npm i
     if [ $? -eq 0 ]; then
       echo "restarting systemd service..."
-      sudo /bin/systemctl restart pcce-instant-shared-toolbox-api.service
+      sudo /bin/systemctl restart cumulus-toolbox-api.service
     else
       echo "npm install failed"
     fi
