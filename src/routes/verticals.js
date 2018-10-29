@@ -273,7 +273,7 @@ router.put('/:id', async function (req, res, next) {
   // else, user is allowed to save vertical. continue.
   // set id and owner in request body
   req.body.id = req.params.id
-  req.body.owner = req.user.username
+  req.body.owner = username
 
   // set up request options for saving data on primary
   options.baseUrl = process.env.MM_API_1
