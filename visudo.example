@@ -1,0 +1,2 @@
+# Allow 'administrator' user to restart cumulus-toolbox-api service
+administrator ALL=NOPASSWD: /bin/systemctl restart cumulus-toolbox-api.service

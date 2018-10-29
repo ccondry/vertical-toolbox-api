@@ -1,0 +1,1 @@
+*/2 * * * * /bin/sh -c 'cd /opt/dcloud/pcce-instant-shared-toolbox-api && ./update.sh' 2>&1 | /usr/bin/logger -t cron-update-pcce-instant-shared-toolbox-api
