@@ -223,16 +223,19 @@ router.put('/:id', async function (req, res, next) {
 
   let allow = false
   let owner = 'system'
+  if (req.user.admin) {
+    allow = true
+  }
   try {
     // try to get from primary
     const response = await request(options)
+    // store a copy of the current owner. undefined owner = system
+    owner = response.owner || 'system'
     if (response.owner === req.user.username) {
       // this user owns this vertical
       allow = true
     } else {
       // user does not own this vertical
-      // store a copy of the current owner. undefined owner = system
-      owner = response.owner || 'system'
     }
   } catch (e) {
     if (e.statusCode === 404) {
@@ -244,13 +247,13 @@ router.put('/:id', async function (req, res, next) {
       options.baseUrl = process.env.MM_API_2
       try {
         const response = await request(options)
+        // store a copy of the current owner. undefined owner = system
+        owner = response.owner || 'system'
         if (response.owner === req.user.username) {
           // this user owns this vertical
           allow = true
         } else {
           // user does not own this vertical
-          // store a copy of the current owner. undefined owner = system
-          owner = response.owner || 'system'
         }
       } catch (e2) {
         if (e2.statusCode === 404) {
