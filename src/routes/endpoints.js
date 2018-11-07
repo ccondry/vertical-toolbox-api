@@ -47,7 +47,7 @@ router.get('/', async function (req, res, next) {
     // return HTTP response
     res.status(200).send(endpoints)
     // log it to db
-    logger.log({clientIp, host, path, url, method, operation, username, status: 200, details: 'get endpoints successful', response: `(JSON ${dataType} with ${dataLength} properties)`})
+    logger.log({clientIp, host, path, url, method, operation, status: 200, details: 'get endpoints successful', response: `(JSON ${dataType} with ${dataLength} properties)`})
   } catch (error) {
     console.log('user', 'at IP', req.clientIp, 'get endpoints', 'error', error.message)
     // return both error messages
