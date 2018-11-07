@@ -125,7 +125,7 @@ router.get('/', async function (req, res, next) {
     baseUrl: process.env.MM_API_1,
     url: '/verticals',
     method: 'GET',
-    qs: req.query,
+    qs: {owner: req.user.username},
     json: true
   }
 
