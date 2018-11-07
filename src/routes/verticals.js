@@ -238,6 +238,7 @@ router.put('/:id', async function (req, res, next) {
     if (e.statusCode === 404) {
       // does not exist yet, so allow user to save database
       allow = true
+      owner = req.user.username
     } else {
       // try secondary
       options.baseUrl = process.env.MM_API_2
@@ -255,6 +256,7 @@ router.put('/:id', async function (req, res, next) {
         if (e2.statusCode === 404) {
           // does not exist yet, so allow user to save data
           allow = true
+          owner = req.user.username
         } else {
           // return any other error code to the client
           return res.status(e.statusCode || e2.statusCode).send(e.message + ' \r\n ' + e2.message)
@@ -271,9 +273,10 @@ router.put('/:id', async function (req, res, next) {
     return res.status(403).send(message)
   }
   // else, user is allowed to save vertical. continue.
-  // set id and owner at the top of the request body
-  const b = {id: req.params.id, owner: username}
-  req.body = Object.assign({}, b, req.body)
+  // force id
+  req.body.id = req.params.id
+  // set owner
+  req.body.owner = owner
 
   // set up request options for saving data on primary
   options.baseUrl = process.env.MM_API_1
