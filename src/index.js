@@ -16,10 +16,10 @@ const port = process.env.NODE_PORT || 3032
 
 // JWT path exceptions - these paths can be used without a JWT required
 const exceptions = {
-  // path: [{
-  //   url: /\/api\/v1\/cumulus\/verticals/i,
-  //   methods: ['GET']
-  // }]
+  path: [{
+    url: /\/api\/v1\/cumulus\/endpoints/i,
+    methods: ['GET']
+  }]
 }
 // init express app, and configure it
 const app = express()
@@ -33,6 +33,33 @@ app.use(cors())
 app.use(requestIp.mw())
 // require valid JWT for all paths unless in the exceptins list, and parse JWT payload into req.user
 app.use(expressJwt({ secret: cert_pub }).unless(exceptions))
+
+// parse JWT to JSON
+function parseJwt (token) {
+  var base64Url = token.split('.')[1]
+  var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+  return JSON.parse(window.atob(base64))
+}
+
+// extract real user info if user object has suJwt
+app.use(function(req, res, next) {
+  // console.log('app.use sujwt middleware - req.user = ', req.user)
+  req.realUser = req.user
+  req.realUsername = req.realUser.username
+  try {
+    // is this a substitute-user?
+    if (req.user.suJwt) {
+      // set the real user and username
+      req.realUser = parseJwt(req.user.suJwt)
+      req.realUsername = req.realUser.username
+    }
+  } catch (e) {
+    console.log(e)
+  }
+  // continue processing
+  next()
+})
+
 // error handling when JWT validation fails
 app.use(function(err, req, res, next) {
   if (err) {
@@ -57,7 +84,16 @@ app.use(function(err, req, res, next) {
   }
 })
 
+/*****
+Routes
+*****/
+
+// REST endpoint URLs
+app.use('/api/v1/cumulus/endpoints', require('./routes/endpoints'))
 // vertical configs
 app.use('/api/v1/cumulus/verticals', require('./routes/verticals'))
 
+/*
+Go
+*/
 app.listen(port, () => console.log(`Express.js app listening on port ${port}`))
