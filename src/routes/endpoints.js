@@ -12,20 +12,25 @@ router.get('/', async function (req, res, next) {
   const url = req.protocol + '://' + host + path
   const operation = 'get endpoints'
 
-  console.log('user', 'at IP', req.clientIp, operation, req.params.id, 'requested')
-
-  if (process.env.NODE_ENV !== 'production') {
-    return res.status(400).send('Use your default development endpoints.')
-  }
-
-  try {
-    const endpoints = {
+  console.log('user', 'at IP', req.clientIp, operation, method, path, 'requested')
+  let endpoints
+  if (process.env.NODE_ENV === 'production') {
+    endpoints = {
       login: '/api/v1/auth/login',
       logout: '/api/v1/auth/logout',
       verticals: '/api/v1/cumulus/verticals',
       endpoints: '/api/v1/cumulus/endpoints'
     }
+  } else {
+    endpoints = {
+      login: 'http://localhost:3032/api/v1/auth/login',
+      logout: 'http://localhost:3032/api/v1/auth/logout',
+      verticals: 'http://localhost:3033/api/v1/cumulus/verticals',
+      endpoints: 'http://localhost:3033/api/v1/cumulus/endpoints'
+    }
+  }
 
+  try {
     // get meta info about the response
     let dataType
     let dataLength
@@ -40,7 +45,7 @@ router.get('/', async function (req, res, next) {
     }
 
     // return HTTP response
-    res.status(200).send(response)
+    res.status(200).send(endpoints)
     // log it to db
     logger.log({clientIp, host, path, url, method, operation, username, status: 200, details: 'get endpoints successful', response: `(JSON ${dataType} with ${dataLength} properties)`})
   } catch (error) {

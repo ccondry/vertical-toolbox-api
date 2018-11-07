@@ -17,7 +17,7 @@ const port = process.env.NODE_PORT || 3032
 // JWT path exceptions - these paths can be used without a JWT required
 const exceptions = {
   path: [{
-    url: /\/api\/v1\/cumulus\/endpoints/i,
+    url: /\/api\/v1\/cumulus\/endpoints$/i,
     methods: ['GET']
   }]
 }
@@ -44,11 +44,11 @@ function parseJwt (token) {
 // extract real user info if user object has suJwt
 app.use(function(req, res, next) {
   // console.log('app.use sujwt middleware - req.user = ', req.user)
-  req.realUser = req.user
-  req.realUsername = req.realUser.username
   try {
+    req.realUser = req.user || {}
+    req.realUsername = req.realUser.username || 'unknown'
     // is this a substitute-user?
-    if (req.user.suJwt) {
+    if (req.user && req.user.suJwt) {
       // set the real user and username
       req.realUser = parseJwt(req.user.suJwt)
       req.realUsername = req.realUser.username
@@ -62,26 +62,32 @@ app.use(function(req, res, next) {
 
 // error handling when JWT validation fails
 app.use(function(err, req, res, next) {
-  if (err) {
-    // return status to user
-    res.status(err.status).send(err.message)
-    // set up data for logging
-    const clientIp = req.clientIp
-    const method = req.method
-    const host = req.get('host')
-    const path = req.originalUrl
-    const url = req.protocol + '://' + host + path
-    // there was an error
-    console.log('user at IP', clientIp, 'error', err.status, err.name, err.message)
-    // log to db
-    logger.log({clientIp, host, path, url, method, status: err.status, details: err.name, parameters: req.params, queryString: req.qs, response: err.message})
-    // stop processing
-    return
-  } else {
-    // no errors
-    // continue processing
-    next()
+  try {
+    if (err) {
+      console.error(err)
+      // return status to user
+      res.status(err.status).send(err.message)
+      // set up data for logging
+      const clientIp = req.clientIp
+      const method = req.method
+      const host = req.get('host')
+      const path = req.originalUrl
+      const url = req.protocol + '://' + host + path
+      // there was an error
+      console.log('user at IP', clientIp, 'attempting to', method, 'at path', path, 'error', err.status, err.name, err.message)
+      // log to db
+      logger.log({clientIp, host, path, url, method, status: err.status, details: err.name, parameters: req.params, queryString: req.qs, response: err.message})
+      // stop processing
+      return
+    } else {
+      // no errors
+    }
+  } catch (e) {
+    console.log(e)
   }
+
+  // continue processing
+  next()
 })
 
 /*****
