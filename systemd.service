@@ -1,5 +1,5 @@
 [Unit]
-Description=dCloud Cumulus Demo Toolbox HTTP REST API
+Description=dCloud Verticals Toolbox HTTP REST API
 After=network.target
 
 [Service]
