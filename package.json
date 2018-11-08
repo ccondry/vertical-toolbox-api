@@ -1,7 +1,7 @@
 {
-  "name": "cumulus-toolbox-api",
+  "name": "vertical-toolbox-api",
   "version": "0.1.0",
-  "description": "Cumulus Demo configuration toolbox HTTP REST API",
+  "description": "dCloud Cumulus Vertical configuration toolbox HTTP REST API",
   "main": "src/index.js",
   "directories": {
     "test": "test"

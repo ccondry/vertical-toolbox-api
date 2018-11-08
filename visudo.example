@@ -1,2 +1,2 @@
-# Allow 'administrator' user to restart cumulus-toolbox-api service
-administrator ALL=NOPASSWD: /bin/systemctl restart cumulus-toolbox-api.service
+# Allow 'administrator' user to restart vertical-toolbox-api service
+administrator ALL=NOPASSWD: /bin/systemctl restart vertical-toolbox-api.service

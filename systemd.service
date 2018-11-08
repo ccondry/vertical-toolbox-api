@@ -3,7 +3,7 @@ Description=dCloud Cumulus Demo Toolbox HTTP REST API
 After=network.target
 
 [Service]
-WorkingDirectory=/opt/dcloud/cumulus-toolbox-api
+WorkingDirectory=/opt/dcloud/vertical-toolbox-api
 ExecStart=node index
 Restart=always
 User=root

@@ -17,7 +17,7 @@ const port = process.env.NODE_PORT || 3032
 // JWT path exceptions - these paths can be used without a JWT required
 const exceptions = {
   path: [{
-    url: /\/api\/v1\/cumulus\/endpoints$/i,
+    url: /\/api\/v1\/verticals\/endpoints$/i,
     methods: ['GET']
   }]
 }
@@ -95,9 +95,9 @@ Routes
 *****/
 
 // REST endpoint URLs
-app.use('/api/v1/cumulus/endpoints', require('./routes/endpoints'))
+app.use('/api/v1/verticals/endpoints', require('./routes/endpoints'))
 // vertical configs
-app.use('/api/v1/cumulus/verticals', require('./routes/verticals'))
+app.use('/api/v1/verticals/verticals', require('./routes/verticals'))
 
 /*
 Go
