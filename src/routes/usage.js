@@ -33,7 +33,7 @@ router.get('/', async function (req, res, next) {
   }
 
   // did user request mm-dev stats?
-  if (query.server === 'mm-dev') {
+  if (req.query.server === 'mm-dev') {
     options.baseUrl = process.env.MM_API_2
   }
   // othewise use mm stats
