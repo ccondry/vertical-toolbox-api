@@ -19,14 +19,16 @@ router.get('/', async function (req, res, next) {
       login: '/api/v1/auth/login',
       logout: '/api/v1/auth/logout',
       verticals: '/api/v1/verticals/verticals',
-      endpoints: '/api/v1/verticals/endpoints'
+      endpoints: '/api/v1/verticals/endpoints',
+      images: '/api/v1/verticals/images'
     }
   } else {
     endpoints = {
       login: 'http://localhost:3032/api/v1/auth/login',
       logout: 'http://localhost:3032/api/v1/auth/logout',
       verticals: 'http://localhost:3033/api/v1/verticals/verticals',
-      endpoints: 'http://localhost:3033/api/v1/verticals/endpoints'
+      endpoints: 'http://localhost:3033/api/v1/verticals/endpoints',
+      images: 'http://localhost:3033/api/v1/verticals/images'
     }
   }
 

@@ -98,6 +98,8 @@ Routes
 app.use('/api/v1/verticals/endpoints', require('./routes/endpoints'))
 // vertical configs
 app.use('/api/v1/verticals/verticals', require('./routes/verticals'))
+// image uploader
+app.use('/api/v1/verticals/images', require('./routes/images'))
 
 /*
 Go
