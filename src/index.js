@@ -100,6 +100,8 @@ app.use('/api/v1/verticals/endpoints', require('./routes/endpoints'))
 app.use('/api/v1/verticals/verticals', require('./routes/verticals'))
 // image uploader
 app.use('/api/v1/verticals/images', require('./routes/images'))
+// usage stats from mm
+app.use('/api/v1/verticals/usage', require('./routes/usage'))
 
 /*
 Go

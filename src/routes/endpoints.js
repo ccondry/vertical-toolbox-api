@@ -20,7 +20,8 @@ router.get('/', async function (req, res, next) {
       logout: '/api/v1/auth/logout',
       verticals: '/api/v1/verticals/verticals',
       endpoints: '/api/v1/verticals/endpoints',
-      images: '/api/v1/verticals/images'
+      images: '/api/v1/verticals/images',
+      usage: '/api/v1/verticals/usage'
     }
   } else {
     endpoints = {
@@ -28,7 +29,8 @@ router.get('/', async function (req, res, next) {
       logout: 'http://localhost:3032/api/v1/auth/logout',
       verticals: 'http://localhost:3033/api/v1/verticals/verticals',
       endpoints: 'http://localhost:3033/api/v1/verticals/endpoints',
-      images: 'http://localhost:3033/api/v1/verticals/images'
+      images: 'http://localhost:3033/api/v1/verticals/images',
+      usage: 'http://localhost:3033/api/v1/verticals/usage'
     }
   }
 
