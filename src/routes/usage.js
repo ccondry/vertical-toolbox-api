@@ -32,40 +32,58 @@ router.get('/', async function (req, res, next) {
     json: true
   }
 
-  try {
-    // try mm
-    const response = await request(options)
-    console.log('user', username, 'at IP', req.clientIp, operation, req.params.id, 'successful on primary server')
+  // did user request mm-dev stats?
+  if (query.server === 'mm-dev') {
+    options.baseUrl = process.env.MM_API_2
+  }
+  // othewise use mm stats
 
-    // get meta info about the response
-    let dataType
-    let dataLength
-    if (Array.isArray(response)) {
-      // array
-      dataType = 'array'
-      dataLength = response.length
-    } else {
-      // object
-      dataType = 'object'
-      dataLength = Object.keys(response).length
+  function makeCsvData (array) {
+    let str = ''
+    // add column titles row
+    let line1 = ''
+    for (let key of Object.keys(array[0])) {
+      line1 += key + ','
+    }
+    // add everything except the last character (the dangling comma) to the csv
+    str += line.slice(0, -1)
+
+    // count the rows
+    let rows = 0
+    for (let row of array) {
+      let line = ''
+      // add each value of this row
+      for (let i in row) {
+        line += row[i] + ','
+      }
+      // add everything except the last character (the dangling comma) to the csv
+      str += line.slice(0, -1)
+      // add newline for the end of this row
+      str += '\r\n'
+      // increment rows
+      rows++
     }
 
-    // log it to db
-    logger.log({clientIp, host, path, url, method, operation, username, status: 200, details: 'get usage stats successful on primary server', parameters: req.params, response: `(JSON ${dataType} with ${dataLength} properties)`})
-    // return HTTP response
-    return res.status(200).send(response)
-  } catch (error) {
-    console.log('user', username, 'at IP', req.clientIp, operation, req.params.id, 'error', error.statusCode, 'on primary server', error.message)
-    // log the error to db
-    logger.log({level: 'warn', clientIp, host, path, url, method, operation, username, status: error.statusCode, details: 'get usage stats failed on primary server', parameters: req.params, response: error.message})
-    // continue
-    try {
-      // try mm-dev
-      console.log('trying secondary server...')
-      options.baseUrl = process.env.MM_API_2
-      const response = await request(options)
-      console.log('user', username, 'at IP', req.clientIp, operation, req.params.id, 'successful on secondary server')
+    return {data: str, rows: rows}
+  }
 
+  try {
+    const response = await request(options)
+    console.log('user', username, 'at IP', req.clientIp, operation, req.params.id, 'successful on ', options.baseUrl)
+
+    const loggerParams = {clientIp, host, path, url, method, operation, username, status: 200, details: 'get usage stats successful on ' + options.baseUrl, parameters: req.params, query: req.query}
+    // any data type conversions?
+    if (req.query.dataType && req.query.dataType.toLowerCase() === 'csv') {
+      // CSV data
+      const csv = makeCsvData(response)
+      // get meta info about the response
+      // log it to db
+      loggerParams.response = `(CSV data with ${csv.rows} rows)`
+      logger.log(loggerParams)
+      // return HTTP response
+      return res.status(200).send(csv.data)
+    } else {
+      // default JSON
       // get meta info about the response
       let dataType
       let dataLength
@@ -78,24 +96,18 @@ router.get('/', async function (req, res, next) {
         dataType = 'object'
         dataLength = Object.keys(response).length
       }
-
       // log it to db
-      logger.log({clientIp, host, path, url, method, operation, username, status: 200, details: 'get usage stats successful on secondary server', parameters: req.params, response: `(JSON ${dataType} with ${dataLength} properties)`})
+      loggerParams.response = `(JSON ${dataType} with ${dataLength} properties)`
+      logger.log(loggerParams)
       // return HTTP response
       return res.status(200).send(response)
-    } catch (e2) {
-      // failed on secondary also
-      console.log('user', username, 'at IP', req.clientIp, operation, req.params.id, 'error', e2.statusCode, 'on secondary server', e2.message)
-      // check if error was "not found"
-      // log warn to db
-      logger.log({level: 'warn', clientIp, host, path, url, method, operation, username, status: e2.statusCode, details: 'get usage stats failed on secondary server', parameters: req.params, response: e2.message})
-      // log error to db
-      logger.log({level: 'error', clientIp, host, path, url, method, operation, username, status: 500, details: 'get usage stats failed on primary and secondary servers', parameters: req.params, response: error.message + ' \r\n ' + e2.message})
-      // return HTTP response
-      // return res.status(500).send(error.message + '/r/n' + e2.message)
-      // return both error messages
-      return res.status(500).send(error.message + ' \r\n ' + e2.message)
     }
+  } catch (error) {
+    console.log('user', username, 'at IP', req.clientIp, operation, req.params.id, 'error', error.statusCode, 'on', options.baseUrl, error.message)
+    // log error to db
+    logger.log({level: 'error', clientIp, host, path, url, method, operation, username, status: 500, details: 'get usage stats failed on ' + options.baseUrl, parameters: req.params, response: error.message})
+    // return error message
+    return res.status(500).send(error.message)
   }
 })
 
