@@ -201,6 +201,10 @@ router.get('/', async function (req, res, next) {
 //   json: true
 // })
 
+function escapeRegExp(str) {
+    return str.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1");
+}
+
 // save vertical
 router.put('/:id', async function (req, res, next) {
   const username = req.user.username
@@ -210,13 +214,17 @@ router.put('/:id', async function (req, res, next) {
   const path = req.originalUrl
   const url = req.protocol + '://' + host + path
   const operation = 'save vertical'
-
-  console.log('user', username, 'at IP', req.clientIp, operation, req.params.id, 'requested')
-
+  // force ID to be lower-case
+  let id = req.params.id.toLowerCase()
+  // and replace any spaces with hyphens
+  id.replace(new RegExp(escapeRegExp(' '), 'g'), '-')
+  // and remove any invalid characters
+  id.replace(new RegExp(escapeRegExp(/[^a-zA-Z0-9]/), 'g'), '')
+  console.log('user', username, 'at IP', req.clientIp, operation, id, 'requested')
   // check that this user owns the vertical in question, or that this vertical ID does not exist
   const options = {
     baseUrl: process.env.MM_API_1,
-    url: '/verticals/' + req.params.id,
+    url: '/verticals/' + id,
     method: 'GET',
     json: true
   }
