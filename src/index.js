@@ -64,7 +64,7 @@ app.use(function(req, res, next) {
 app.use(function(err, req, res, next) {
   try {
     if (err) {
-      console.error(err)
+      // console.error(err.message)
       // return status to user
       res.status(err.status).send(err.message)
       // set up data for logging
