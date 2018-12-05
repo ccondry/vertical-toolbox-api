@@ -12,7 +12,7 @@ const logger = require('./models/logger')
 // load the public cert for validating JWT
 const cert_pub = fs.readFileSync('./certs/rsa-public.pem')
 // set up Node.js HTTP port
-const port = process.env.NODE_PORT || 3032
+const port = process.env.NODE_PORT || 3033
 
 // JWT path exceptions - these paths can be used without a JWT required
 const exceptions = {
