@@ -223,7 +223,6 @@ router.put('/:id', async function (req, res, next) {
   console.log('user', username, 'at IP', req.clientIp, operation, id, 'requested')
   // check that this user owns the vertical in question, or that this vertical ID does not exist
   const options = {
-    baseUrl: process.env.MM_API_1,
     url: '/verticals/' + id,
     method: 'GET',
     json: true
@@ -236,6 +235,7 @@ router.put('/:id', async function (req, res, next) {
   }
   try {
     // try to get from primary
+    options.baseUrl = process.env.MM_API_1
     const response = await request(options)
     // store a copy of the current owner. undefined owner = system
     owner = response.owner || 'system'
@@ -289,8 +289,7 @@ router.put('/:id', async function (req, res, next) {
   // set owner
   req.body.owner = owner
 
-  // set up request options for saving data on primary
-  options.baseUrl = process.env.MM_API_1
+  // set up request options for saving data
   options.method = 'PUT'
   options.headers = {Authorization: `Bearer ${process.env.MM_TOKEN}`},
   options.body = req.body
@@ -299,11 +298,12 @@ router.put('/:id', async function (req, res, next) {
   let secondarySuccess
   // update primary
   try {
+    options.baseUrl = process.env.MM_API_1
     await request(options)
-    console.log('user', username, 'at IP', req.clientIp, 'save vertical', req.params.id, 'successful on primary server')
+    console.log('user', username, 'at IP', req.clientIp, operation, req.params.id, 'successful on primary server')
     primarySuccess = true
   } catch (e) {
-    console.log('user', username, 'at IP', req.clientIp, 'save vertical', req.params.id, 'failed on primary server', e.message)
+    console.log('user', username, 'at IP', req.clientIp, operation, req.params.id, 'failed on primary server', e.message)
     primarySuccess = false
   }
 
@@ -312,10 +312,10 @@ router.put('/:id', async function (req, res, next) {
     // set base URL to secondary
     options.baseUrl = process.env.MM_API_2
     await request(options)
-    console.log('user', username, 'at IP', req.clientIp, 'save vertical', req.params.id, 'successful on secondary server')
+    console.log('user', username, 'at IP', req.clientIp, operation, req.params.id, 'successful on secondary server')
     secondarySuccess = true
   } catch (e) {
-    console.log('user', username, 'at IP', req.clientIp, 'save vertical', req.params.id, 'failed on secondary server', e.message)
+    console.log('user', username, 'at IP', req.clientIp, operation, req.params.id, 'failed on secondary server', e.message)
     secondarySuccess = false
   }
 
