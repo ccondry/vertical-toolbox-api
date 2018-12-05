@@ -343,4 +343,126 @@ router.put('/:id', async function (req, res, next) {
   return res.status(status).send(resultMessage)
 })
 
+
+// delete vertical
+router.delete('/:id', async function (req, res, next) {
+  const username = req.user.username
+  const clientIp = req.clientIp
+  const method = req.method
+  const host = req.get('host')
+  const path = req.originalUrl
+  const url = req.protocol + '://' + host + path
+  const operation = 'delete vertical'
+  // force ID to be lower-case
+  let id = req.params.id.toLowerCase()
+  // and replace any spaces with hyphens
+  id.replace(new RegExp(escapeRegExp(' '), 'g'), '-')
+  // and remove any invalid characters
+  id.replace(new RegExp(escapeRegExp('[^a-zA-Z0-9]'), 'g'), '')
+  console.log('user', username, 'at IP', req.clientIp, operation, id, 'requested')
+  // check that this user owns the vertical in question, or that this vertical ID does not exist
+  const options = {
+    url: '/verticals/' + id,
+    method: 'GET',
+    json: true
+  }
+
+  let allow = false
+  // let owner = 'system'
+
+  try {
+    // try to get from primary
+    options.baseUrl = process.env.MM_API_1
+    const response = await request(options)
+    // store a copy of the current owner. undefined owner = system
+    let owner = response.owner || 'system'
+    if (response.owner === req.user.username) {
+      // this user owns this vertical
+      allow = true
+    } else if (req.user.admin && response.owner && response.owner !== 'system') {
+      // admins are allowed to delete user-owned verticals but not system-owned ones
+      allow = true
+    }
+  } catch (e) {
+    // try secondary
+    options.baseUrl = process.env.MM_API_2
+    try {
+      const response = await request(options)
+      // store a copy of the current owner. undefined owner = system
+      owner = response.owner || 'system'
+      if (response.owner === req.user.username) {
+        // this user owns this vertical
+        allow = true
+      } else if (req.user.admin && response.owner && response.owner !== 'system') {
+        // admins are allowed to delete user-owned verticals but not system-owned ones
+        allow = true
+      }
+    } catch (e2) {
+      // return any other error code to the client
+      return res.status(e.statusCode || e2.statusCode).send(e.message + ' \r\n ' + e2.message)
+    }
+  }
+
+  if (!allow) {
+    // user is not allowed to delete this vertical
+    const message = `You are not authorized to delete this vertical. It is owned by "${owner}"`
+    console.log('user', username, 'at IP', req.clientIp, operation, req.params.id, `'failed - not authorized. It is owned by "${owner}"`)
+    logger.log({clientIp, host, path, url, method, operation, username, status: 403, details: message, parameters: req.params, response: message})
+    return res.status(403).send(message)
+  }
+  // else, user is allowed to delete vertical. continue.
+
+  // set up request options for deleting data
+  options.method = 'DELETE'
+  options.headers = {Authorization: `Bearer ${process.env.MM_TOKEN}`}
+
+  let primarySuccess
+  let secondarySuccess
+  // update primary
+  try {
+    options.baseUrl = process.env.MM_API_1
+    await request(options)
+    console.log('user', username, 'at IP', req.clientIp, operation, req.params.id, 'successful on primary server')
+    primarySuccess = true
+  } catch (e) {
+    console.log('user', username, 'at IP', req.clientIp, operation, req.params.id, 'failed on primary server', e.message)
+    primarySuccess = false
+  }
+
+  // and also update secondary
+  try {
+    // set base URL to secondary
+    options.baseUrl = process.env.MM_API_2
+    await request(options)
+    console.log('user', username, 'at IP', req.clientIp, operation, req.params.id, 'successful on secondary server')
+    secondarySuccess = true
+  } catch (e) {
+    console.log('user', username, 'at IP', req.clientIp, operation, req.params.id, 'failed on secondary server', e.message)
+    secondarySuccess = false
+  }
+
+  let resultMessage
+  if (primarySuccess && secondarySuccess) {
+    resultMessage = operation + 'successful on the primary and secondary servers.'
+    status = 202
+  } else if (primarySuccess) {
+    // secondary failed
+    resultMessage = operation + 'successful on the primary server, but failed on the secondary server.'
+    status = 202
+  } else if (secondarySuccess) {
+    // primary failed
+    resultMessage = operation + 'successful on the secondary server, but failed on the primary server.'
+    status = 202
+  } else {
+    // both failed
+    resultMessage = operation + 'failed on the primary and secondary servers.'
+    status = 500
+  }
+
+  // log it to db
+  logger.log({clientIp, host, path, url, method, operation, username, status, details: resultMessage, parameters: req.params, response: resultMessage})
+  // return HTTP response
+  return res.status(status).send(resultMessage)
+})
+
 module.exports = router
