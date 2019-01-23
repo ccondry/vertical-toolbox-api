@@ -54,7 +54,7 @@ app.use(function(req, res, next) {
       req.realUsername = req.realUser.username
     }
   } catch (e) {
-    console.log(e)
+    console.log(e.message)
   }
   // continue processing
   next()
@@ -83,7 +83,7 @@ app.use(function(err, req, res, next) {
       // no errors
     }
   } catch (e) {
-    console.log(e)
+    console.log(e.message)
   }
 
   // continue processing
