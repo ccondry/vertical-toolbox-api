@@ -78,19 +78,19 @@ router.post('/', async function (req, res, next) {
 
   let resultMessage
   if (primarySuccess && secondarySuccess) {
-    resultMessage = 'Successfully saved vertical config on the primary and secondary servers.'
+    resultMessage = 'Successfully uploaded image on the primary and secondary servers.'
     status = 201
   } else if (primarySuccess) {
     // secondary failed
-    resultMessage = 'Successfully saved vertical config on the primary server, but failed to save config on the secondary server.'
+    resultMessage = 'Successfully uploaded image on the primary server, but failed to upload image on the secondary server.'
     status = 201
   } else if (secondarySuccess) {
     // primary failed
-    resultMessage = 'Successfully saved vertical config on the secondary server, but failed to save config on the primary server.'
+    resultMessage = 'Successfully uploaded image on the secondary server, but failed to upload image on the primary server.'
     status = 201
   } else {
     // both failed
-    resultMessage = 'Failed to save vertical config on the primary and secondary servers.'
+    resultMessage = 'Failed to upload image on the primary and secondary servers.'
     status = 500
   }
 
