@@ -217,7 +217,7 @@ router.put('/:id', async function (req, res, next) {
   // force ID to be lower-case
   let id = req.params.id.toLowerCase()
   // replace spaces with hyphens, and remove all other non-alphanumerics
-  id = id.replace(/ /g, '-').replace(/[\W_]+/g, '')
+  id = id.replace(/ /g, '-').replace(/[^a-zA-Z0-9_-]+/g, '')
   console.log('user', username, 'at IP', req.clientIp, operation, id, 'requested')
   // check that this user owns the vertical in question, or that this vertical ID does not exist
   const options = {
