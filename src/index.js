@@ -98,6 +98,8 @@ Routes
 app.use('/api/v1/verticals/endpoints', require('./routes/endpoints'))
 // vertical configs
 app.use('/api/v1/verticals/verticals', require('./routes/verticals'))
+// brands
+app.use('/api/v1/verticals/brands', require('./routes/brands'))
 // image uploader
 app.use('/api/v1/verticals/images', require('./routes/images'))
 // usage stats from mm
