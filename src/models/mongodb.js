@@ -9,9 +9,9 @@ function find (db, collection, query) {
       MongoClient.connect(url, options, function(connectError, client) {
         if (connectError) return reject(connectError)
         client.db(db).collection(collection).find(query).toArray(function (queryError, result) {
+          client.close()
           if (queryError) reject(queryError)
           else resolve(result)
-          client.close()
         })
       })
     } catch (e) {
@@ -26,9 +26,9 @@ function findOne (db, collection, query) {
       MongoClient.connect(url, options, function(connectError, client) {
         if (connectError) return reject(connectError)
         client.db(db).collection(collection).findOne(query, function (queryError, result) {
+          client.close()
           if (queryError) reject(queryError)
           else resolve(result)
-          client.close()
         })
       })
     } catch (e) {
@@ -47,9 +47,9 @@ function upsert (db, collection, query, data) {
           data,
           { upsert: true },
           function(queryError, doc) {
+            client.close()
             if (queryError) reject(queryError)
             else resolve(doc)
-            client.close()
           }
         )
       })
@@ -69,9 +69,9 @@ function update (db, collection, query, data, field) {
           { $set: { [field]: data } },
           { upsert: true },
           function(queryError, doc) {
+            client.close()
             if (queryError) reject(queryError)
             else resolve(doc)
-            client.close()
           }
         )
       })
@@ -91,9 +91,9 @@ function addToSet (db, collection, query, data, field) {
           { $addToSet: { [field]: data } },
           { upsert: true },
           function(queryError, doc) {
+            client.close()
             if (queryError) reject(queryError)
             else resolve(doc)
-            client.close()
           }
         )
       })
@@ -111,9 +111,9 @@ function insertOne (db, collection, data) {
         client.db(db).collection(collection).insertOne(
           data,
           function(queryError, doc) {
+            client.close()
             if (queryError) reject(queryError)
             else resolve(doc)
-            client.close()
           }
         )
       })
@@ -131,9 +131,9 @@ function remove (db, collection, query) {
         client.db(db).collection(collection).remove(
           query,
           function(queryError, doc) {
+            client.close()
             if (queryError) reject(queryError)
             else resolve(doc)
-            client.close()
           }
         )
       })
