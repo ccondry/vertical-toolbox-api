@@ -15,8 +15,9 @@ router.get('/:id', async function (req, res, next) {
   const path = req.originalUrl
   const url = req.protocol + '://' + host + path
   const operation = 'get vertical'
+  const query = req.query
 
-  console.log('user', username, 'at IP', req.clientIp, operation, req.params.id, 'requested')
+  console.log('user', username, 'at IP', req.clientIp, operation, req.params.id, 'requested with query', query)
 
   const options = {
     baseUrl: process.env.MM_API_1,
@@ -118,14 +119,15 @@ router.get('/', async function (req, res, next) {
   const path = req.originalUrl
   const url = req.protocol + '://' + host + path
   const operation = 'get verticals'
+  const query = req.query
 
-  console.log('user', username, 'at IP', req.clientIp, operation, 'requested')
+  console.log('user', username, 'at IP', req.clientIp, operation, 'requested with query', query)
 
   const options = {
     baseUrl: process.env.MM_API_1,
     url: '/verticals',
     method: 'GET',
-    qs: {all: true},
+    qs: query,
     json: true
   }
 
@@ -148,13 +150,13 @@ router.get('/', async function (req, res, next) {
     }
 
     // log it to db
-    logger.log({clientIp, host, path, url, method, operation, username, status: 200, details: 'get verticals successful on primary server', queryString: req.query, response: `(JSON ${dataType} with ${dataLength} properties)`})
+    logger.log({clientIp, host, path, url, method, operation, username, status: 200, details: 'get verticals successful on primary server', query, response: `(JSON ${dataType} with ${dataLength} properties)`})
     // return HTTP response
     return res.status(200).send(response)
   } catch (error) {
     console.log('user', username, 'at IP', req.clientIp, 'get verticals', 'error', error.statusCode, 'on primary server', error.message)
     // log the error to db
-    logger.log({level: 'warn', clientIp, host, path, url, method, operation, username, status: error.statusCode, details: 'get verticals failed on primary server', queryString: req.query, response: error.message})
+    logger.log({level: 'warn', clientIp, host, path, url, method, operation, username, status: error.statusCode, details: 'get verticals failed on primary server', query, response: error.message})
     try {
       // try mm-dev
       console.log('trying secondary server...')
@@ -176,16 +178,16 @@ router.get('/', async function (req, res, next) {
       }
 
       // log it to db
-      logger.log({clientIp, host, path, url, method, operation, username, status: 200, details: 'get verticals successful on primary server', queryString: req.query, response: `(JSON ${dataType} with ${dataLength} properties)`})
+      logger.log({clientIp, host, path, url, method, operation, username, status: 200, details: 'get verticals successful on primary server', query, response: `(JSON ${dataType} with ${dataLength} properties)`})
       // return HTTP response
       return res.status(200).send(response)
     } catch (e2) {
       // failed on secondary also
       console.log('user', username, 'at IP', req.clientIp, 'get vertical', req.params.id, 'error', e2.statusCode, 'on secondary server', e2.message)
       // log warn to db
-      logger.log({level: 'warn', clientIp, host, path, url, method, operation, username, status: e2.statusCode, details: 'get verticals failed on secondary server', queryString: req.query, response: e2.message})
+      logger.log({level: 'warn', clientIp, host, path, url, method, operation, username, status: e2.statusCode, details: 'get verticals failed on secondary server', query, response: e2.message})
       // log error to db
-      logger.log({level: 'error', clientIp, host, path, url, method, operation, username, status: 500, details: 'get verticals failed on primary and secondary servers', queryString: req.query, response: error.message + ' \r\n ' + e2.message})
+      logger.log({level: 'error', clientIp, host, path, url, method, operation, username, status: 500, details: 'get verticals failed on primary and secondary servers', query, response: error.message + ' \r\n ' + e2.message})
       // return HTTP response
       // return res.status(500).send(error.message + '/r/n' + e2.message)
       // return both error messages
