@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 WorkingDirectory=/opt/dcloud/vertical-toolbox-api
-ExecStart=node index
+ExecStart=/usr/bin/node src/index.js
 Restart=always
 User=root
 Group=root
