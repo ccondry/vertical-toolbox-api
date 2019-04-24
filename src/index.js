@@ -1,5 +1,7 @@
 // load environment file
 require('dotenv').load()
+// init cloud database connection pool
+require('./models/mongodb').connect().catch(e => console.error(e))
 
 const express = require('express')
 const bodyParser = require('body-parser')
@@ -98,12 +100,8 @@ Routes
 app.use('/api/v1/verticals/endpoints', require('./routes/endpoints'))
 // vertical configs
 app.use('/api/v1/verticals/verticals', require('./routes/verticals'))
-// brands
-app.use('/api/v1/verticals/brands', require('./routes/brands'))
 // image uploader
 app.use('/api/v1/verticals/images', require('./routes/images'))
-// usage stats from mm
-app.use('/api/v1/verticals/usage', require('./routes/usage'))
 
 /*
 Go

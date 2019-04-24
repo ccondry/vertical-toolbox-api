@@ -19,7 +19,6 @@ router.get('/', async function (req, res, next) {
       login: '/api/v1/auth/login',
       logout: '/api/v1/auth/logout',
       verticals: '/api/v1/verticals/verticals',
-      brands: '/api/v1/verticals/brands',
       endpoints: '/api/v1/verticals/endpoints',
       images: '/api/v1/verticals/images',
       usage: '/api/v1/verticals/usage'
@@ -29,7 +28,6 @@ router.get('/', async function (req, res, next) {
       login: 'http://localhost:3032/api/v1/auth/login',
       logout: 'http://localhost:3032/api/v1/auth/logout',
       verticals: 'http://localhost:3033/api/v1/verticals/verticals',
-      brands: 'http://localhost:3033/api/v1/verticals/brands',
       endpoints: 'http://localhost:3033/api/v1/verticals/endpoints',
       images: 'http://localhost:3033/api/v1/verticals/images',
       usage: 'http://localhost:3033/api/v1/verticals/usage'

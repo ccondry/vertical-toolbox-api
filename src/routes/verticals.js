@@ -1,10 +1,7 @@
 const express = require('express')
 const router = express.Router()
-const request = require('request-promise-native')
 const logger = require('../models/logger')
-
-const mmApi1 = process.env.MM_API_1
-const mmApi2 = process.env.MM_API_2
+const db = require('../models/mongodb')
 
 // get single vertical
 router.get('/:id', async function (req, res, next) {
@@ -19,93 +16,37 @@ router.get('/:id', async function (req, res, next) {
 
   console.log('user', username, 'at IP', req.clientIp, operation, req.params.id, 'requested with query', query)
 
-  const options = {
-    baseUrl: process.env.MM_API_1,
-    url: '/verticals/' + req.params.id,
-    method: 'GET',
-    // qs: req.query,
-    json: true
-  }
-
   try {
-    // try mm
-    const response = await request(options)
-    console.log('user', username, 'at IP', req.clientIp, 'get vertical', req.params.id, 'successful on primary server')
-
-    // get meta info about the response
-    let dataType
-    let dataLength
-    if (Array.isArray(response)) {
-      // array
-      dataType = 'array'
-      dataLength = response.length
-    } else {
-      // object
-      dataType = 'object'
-      dataLength = Object.keys(response).length
-    }
-
-    // log it to db
-    logger.log({clientIp, host, path, url, method, operation, username, status: 200, details: 'get vertical successful on primary server', parameters: req.params, response: `(JSON ${dataType} with ${dataLength} properties)`})
-    // return HTTP response
-    return res.status(200).send(response)
-  } catch (error) {
-    console.log('user', username, 'at IP', req.clientIp, 'get vertical', req.params.id, 'error', error.statusCode, 'on primary server', error.message)
-    // check if error was "not found"
-    if (error.statusCode === 404) {
-      // log it to db
-      logger.log({clientIp, host, path, url, method, operation, username, status: 404, details: 'get vertical failed on primary server', parameters: req.params, response: `vertical with ID "${req.params.id}" was not found.`})
-      // return the 404 not found
-      return res.status(404).send(`vertical with ID "${req.params.id}" was not found.`)
-    } else {
-      // log the error to db
-      logger.log({level: 'warn', clientIp, host, path, url, method, operation, username, status: error.statusCode, details: 'get vertical failed on primary server', parameters: req.params, response: error.message})
-      // continue
-    }
-    try {
-      // try mm-dev
-      console.log('trying secondary server...')
-      options.baseUrl = process.env.MM_API_2
-      const response = await request(options)
-      console.log('user', username, 'at IP', req.clientIp, 'get vertical', req.params.id, 'successful on secondary server')
-
+    // get vertical ID from URL
+    const id = req.params.id
+    // remove _id from results
+    const projection = {_id: 0}
+    // get vertical from cloud mongo db
+    const vertical = await db.findOne('cumulus', 'vertical', {id}, {projection})
+    if (vertical) {
       // get meta info about the response
-      let dataType
-      let dataLength
-      if (Array.isArray(response)) {
-        // array
-        dataType = 'array'
-        dataLength = response.length
-      } else {
-        // object
-        dataType = 'object'
-        dataLength = Object.keys(response).length
-      }
-
+      const dataType = 'object'
+      const dataLength = Object.keys(vertical).length
+      console.log('user', username, 'at IP', req.clientIp, 'get vertical', req.params.id, 'successful')
       // log it to db
-      logger.log({clientIp, host, path, url, method, operation, username, status: 200, details: 'get vertical successful on primary server', parameters: req.params, response: `(JSON ${dataType} with ${dataLength} properties)`})
+      logger.log({clientIp, host, path, url, method, operation, username, status: 200, details: 'get vertical successful', params: req.params, response: `(JSON ${dataType} with ${dataLength} properties)`})
       // return HTTP response
-      return res.status(200).send(response)
-    } catch (e2) {
-      // failed on secondary also
-      console.log('user', username, 'at IP', req.clientIp, 'get vertical', req.params.id, 'error', e2.statusCode, 'on secondary server', e2.message)
-      // check if error was "not found"
-      if (e2.statusCode === 404) {
-        // log it to db
-        logger.log({clientIp, host, path, url, method, operation, username, status: 404, details: 'get vertical failed on secondary server', parameters: req.params, response: `vertical with ID "${req.params.id}" was not found.`})
-        // return the 404 not found
-        return res.status(404).send(`vertical with ID "${req.params.id}" was not found.`)
-      } else {
-        // log warn to db
-        logger.log({level: 'warn', clientIp, host, path, url, method, operation, username, status: e2.statusCode, details: 'get vertical failed on secondary server', parameters: req.params, response: e2.message})
-        // log error to db
-        logger.log({level: 'error', clientIp, host, path, url, method, operation, username, status: 500, details: 'get vertical failed on primary and secondary servers', parameters: req.params, response: error.message + ' \r\n ' + e2.message})
-        // return HTTP response
-        // return res.status(500).send(error.message + '/r/n' + e2.message)
-        // return both error messages
-        return res.status(500).send(error.message + ' \r\n ' + e2.message)
-      }
+      return res.status(200).send(vertical)
+    } else {
+      const response = 'vertical with id = "' + id + '" not found.'
+      // vertical not found
+      console.log('user', username, 'at IP', req.clientIp, 'get vertical', req.params.id, 'failed', response)
+      // log it to db
+      logger.log({clientIp, host, path, url, method, operation, username, status: 404, details: 'get vertical failed', params: req.params, response})
+      // return HTTP response
+      return res.status(404).send(response)
     }
+  } catch (e) {
+    // failed on secondary also
+    console.log('user', username, 'at IP', req.clientIp, 'get vertical', req.params.id, 'error', e.message)
+    // log error to db
+    logger.log({level: 'error', clientIp, host, path, url, method, operation, username, status: 500, details: 'get vertical failed', params: req.params, response: e.message})
+    return res.status(500).send(e.message)
   }
 })
 
@@ -123,88 +64,39 @@ router.get('/', async function (req, res, next) {
 
   console.log('user', username, 'at IP', req.clientIp, operation, 'requested with query', query)
 
-  const options = {
-    baseUrl: process.env.MM_API_1,
-    url: '/verticals',
-    method: 'GET',
-    qs: query,
-    json: true
-  }
-
   try {
-    // try mm
-    const response = await request(options)
-    console.log('user', username, 'at IP', req.clientIp, 'get verticals', 'successful on primary server')
-
+    // get only id, name, owner fields
+    const projection = {id: 1, name: 1, owner: 1}
+    // get vertical from cloud mongo db
+    const verticals = await db.find('cumulus', 'vertical', {}, projection)
     // get meta info about the response
-    let dataType
-    let dataLength
-    if (Array.isArray(response)) {
-      // array
-      dataType = 'array'
-      dataLength = response.length
-    } else {
-      // object
-      dataType = 'object'
-      dataLength = Object.keys(response).length
-    }
-
+    const dataType = 'array'
+    const dataLength = verticals.length
+    console.log('user', username, 'at IP', req.clientIp, 'get verticals', 'successful')
     // log it to db
-    logger.log({clientIp, host, path, url, method, operation, username, status: 200, details: 'get verticals successful on primary server', query, response: `(JSON ${dataType} with ${dataLength} properties)`})
+    logger.log({clientIp, host, path, url, method, operation, username, status: 200, details: 'get verticals successful', params: req.params, query, response: `(JSON ${dataType} with ${dataLength} properties)`})
     // return HTTP response
-    return res.status(200).send(response)
+    return res.status(200).send(verticals)
   } catch (error) {
-    console.log('user', username, 'at IP', req.clientIp, 'get verticals', 'error', error.statusCode, 'on primary server', error.message)
-    // log the error to db
-    logger.log({level: 'warn', clientIp, host, path, url, method, operation, username, status: error.statusCode, details: 'get verticals failed on primary server', query, response: error.message})
-    try {
-      // try mm-dev
-      console.log('trying secondary server...')
-      options.baseUrl = process.env.MM_API_2
-      const response = await request(options)
-      console.log('user', username, 'at IP', req.clientIp, 'get verticals', 'successful on secondary server')
-
-      // get meta info about the response
-      let dataType
-      let dataLength
-      if (Array.isArray(response)) {
-        // array
-        dataType = 'array'
-        dataLength = response.length
-      } else {
-        // object
-        dataType = 'object'
-        dataLength = Object.keys(response).length
-      }
-
-      // log it to db
-      logger.log({clientIp, host, path, url, method, operation, username, status: 200, details: 'get verticals successful on primary server', query, response: `(JSON ${dataType} with ${dataLength} properties)`})
-      // return HTTP response
-      return res.status(200).send(response)
-    } catch (e2) {
-      // failed on secondary also
-      console.log('user', username, 'at IP', req.clientIp, 'get vertical', req.params.id, 'error', e2.statusCode, 'on secondary server', e2.message)
-      // log warn to db
-      logger.log({level: 'warn', clientIp, host, path, url, method, operation, username, status: e2.statusCode, details: 'get verticals failed on secondary server', query, response: e2.message})
-      // log error to db
-      logger.log({level: 'error', clientIp, host, path, url, method, operation, username, status: 500, details: 'get verticals failed on primary and secondary servers', query, response: error.message + ' \r\n ' + e2.message})
-      // return HTTP response
-      // return res.status(500).send(error.message + '/r/n' + e2.message)
-      // return both error messages
-      return res.status(500).send(error.message + ' \r\n ' + e2.message)
-    }
+    console.log('user', username, 'at IP', req.clientIp, 'get verticals', 'error:', error.message)
+    // log error to db
+    logger.log({level: 'error', clientIp, host, path, url, method, operation, username, status: 500, details: 'get verticals failed', query, response: error.message})
+    // return HTTP response
+    return res.status(500).send(error.message)
   }
 })
 
-// try primary
-// const file = await request({
-//   url: process.env.api_base_primary + '/' + path + '/' + req.params.ani,
-//   headers: {Authorization: `Bearer ${process.env.jwt_token}`},
-//   json: true
-// })
-
 function escapeRegExp(str) {
     return str.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1");
+}
+
+function cleanId (id) {
+  let ret
+  // force ID to be lower-case
+  ret = id.toLowerCase()
+  // replace spaces with hyphens, and remove all other non-alphanumerics
+  ret = id.replace(/ /g, '-').replace(/[^a-zA-Z0-9_-]+/g, '')
+  return ret
 }
 
 // save vertical
@@ -216,133 +108,66 @@ router.put('/:id', async function (req, res, next) {
   const path = req.originalUrl
   const url = req.protocol + '://' + host + path
   const operation = 'save vertical'
-  // force ID to be lower-case
-  let id = req.params.id.toLowerCase()
-  // replace spaces with hyphens, and remove all other non-alphanumerics
-  id = id.replace(/ /g, '-').replace(/[^a-zA-Z0-9_-]+/g, '')
+  // sanitize input
+  let id = cleanId(req.params.id)
   console.log('user', username, 'at IP', req.clientIp, operation, id, 'requested')
-  // check that this user owns the vertical in question, or that this vertical ID does not exist
-  const options = {
-    url: '/verticals/' + id,
-    method: 'GET',
-    json: true
-  }
+
+  // check that this user owns the vertical in question, or that this vertical
+  // ID does not exist
+
+  // remove _id from vertical data retrieved from mongo
+  const projection = {_id: 0}
+  // get existing vertical from cloud mongo db
+  const vertical = await db.findOne('cumulus', 'vertical', {id}, projection)
 
   let allow = false
-  let owner = 'system'
-  if (req.user.admin) {
+  if (!vertical) {
+    // vertical does not exist - any user is allowed to create new
     allow = true
-  }
-  try {
-    // try to get from primary
-    options.baseUrl = process.env.MM_API_1
-    const response = await request(options)
-    // store a copy of the current owner. undefined owner = system
-    owner = response.owner || 'system'
-    if (response.owner === req.user.username) {
-      // this user owns this vertical
-      allow = true
-    } else {
-      // user does not own this vertical
-    }
-  } catch (e) {
-    if (e.statusCode === 404) {
-      // does not exist yet, so allow user to save database
-      allow = true
-      owner = req.user.username
-    } else {
-      // try secondary
-      options.baseUrl = process.env.MM_API_2
-      try {
-        const response = await request(options)
-        // store a copy of the current owner. undefined owner = system
-        owner = response.owner || 'system'
-        if (response.owner === req.user.username) {
-          // this user owns this vertical
-          allow = true
-        } else {
-          // user does not own this vertical
-        }
-      } catch (e2) {
-        if (e2.statusCode === 404) {
-          // does not exist yet, so allow user to save data
-          allow = true
-          owner = req.user.username
-        } else {
-          // return any other error code to the client
-          return res.status(e.statusCode || e2.statusCode).send(e.message + ' \r\n ' + e2.message)
-        }
-      }
-    }
+    // set vertical owner in vertical data to requesting user's username
+    req.body.owner = req.user.username
+  } else if (req.user.admin) {
+    // admins are allowed to update any vertical
+    allow = true
+    // but don't change the owner
+  } else if (vertical.owner === req.user.username) {
+    // vertical exists and requesting user owns this vertical
+    allow = true
+  } else {
+    // vertical exists, user is not admin, and user does not own this vertical
+    allow = false
   }
 
   if (!allow) {
     // user is not allowed to update this vertical
     const message = `You are not authorized to update this vertical. It is owned by "${owner}"`
     console.log('user', username, 'at IP', req.clientIp, operation, req.params.id, `'failed - not authorized. It is owned by "${owner}"`)
-    logger.log({clientIp, host, path, url, method, operation, username, status: 403, details: message, parameters: req.params, response: message})
+    logger.log({clientIp, host, path, url, method, operation, username, status: 403, details: message, params: req.params, response: message})
     return res.status(403).send(message)
   }
+
   // else, user is allowed to save vertical. continue.
-  // force id
+  // set vertical.id = request URL parameter for vertical ID
   req.body.id = req.params.id
-  // set owner
-  req.body.owner = owner
 
-  // set up request options for saving data
-  options.method = 'PUT'
-  options.headers = {Authorization: `Bearer ${process.env.MM_TOKEN}`},
-  options.body = req.body
-
-  let primarySuccess
-  let secondarySuccess
-  // update primary
   try {
-    options.baseUrl = process.env.MM_API_1
-    await request(options)
-    console.log('user', username, 'at IP', req.clientIp, operation, req.params.id, 'successful on primary server')
-    primarySuccess = true
+    // update or insert the data in the cloud mongo database
+    await db.upsert('cumulus', 'vertical', {id}, req.body)
+    console.log('user', username, 'at IP', req.clientIp, operation, req.params.id, 'successful')
+    resultMessage = 'Successfully saved vertical config.'
+    // log it to db
+    logger.log({clientIp, host, path, url, method, operation, username, status: 202, details: resultMessage, params: req.params, response: resultMessage})
+    // return HTTP response
+    return res.status(202).send(resultMessage)
   } catch (e) {
-    console.log('user', username, 'at IP', req.clientIp, operation, req.params.id, 'failed on primary server', e.message)
-    primarySuccess = false
+    console.log('user', username, 'at IP', req.clientIp, operation, req.params.id, 'failed:', e.message)
+    resultMessage = 'Failed to save vertical config.'
+    // log it to db
+    logger.log({clientIp, host, path, url, method, operation, username, status: 500, details: resultMessage, params: req.params, response: e.message})
+    // return HTTP response
+    return res.status(500).send(e.message)
   }
-
-  // and also update secondary
-  try {
-    // set base URL to secondary
-    options.baseUrl = process.env.MM_API_2
-    await request(options)
-    console.log('user', username, 'at IP', req.clientIp, operation, req.params.id, 'successful on secondary server')
-    secondarySuccess = true
-  } catch (e) {
-    console.log('user', username, 'at IP', req.clientIp, operation, req.params.id, 'failed on secondary server', e.message)
-    secondarySuccess = false
-  }
-
-  let resultMessage
-  if (primarySuccess && secondarySuccess) {
-    resultMessage = 'Successfully saved vertical config on the primary and secondary servers.'
-    status = 202
-  } else if (primarySuccess) {
-    // secondary failed
-    resultMessage = 'Successfully saved vertical config on the primary server, but failed to save config on the secondary server.'
-    status = 202
-  } else if (secondarySuccess) {
-    // primary failed
-    resultMessage = 'Successfully saved vertical config on the secondary server, but failed to save config on the primary server.'
-    status = 202
-  } else {
-    // both failed
-    resultMessage = 'Failed to save vertical config on the primary and secondary servers.'
-    status = 500
-  }
-
-  // log it to db
-  logger.log({clientIp, host, path, url, method, operation, username, status, details: resultMessage, parameters: req.params, response: resultMessage})
-  // return HTTP response
-  return res.status(status).send(resultMessage)
 })
-
 
 // delete vertical
 router.delete('/:id', async function (req, res, next) {
@@ -353,116 +178,64 @@ router.delete('/:id', async function (req, res, next) {
   const path = req.originalUrl
   const url = req.protocol + '://' + host + path
   const operation = 'delete vertical'
-  // force ID to be lower-case
-  let id = req.params.id.toLowerCase()
-  // and replace any spaces with hyphens
-  id.replace(new RegExp(escapeRegExp(' '), 'g'), '-')
-  // and remove any invalid characters
-  id.replace(new RegExp(escapeRegExp('[^a-zA-Z0-9]'), 'g'), '')
-  console.log('user', username, 'at IP', req.clientIp, operation, id, 'requested')
-  // check that this user owns the vertical in question, or that this vertical ID does not exist
-  const options = {
-    url: '/verticals/' + id,
-    method: 'GET',
-    json: true
-  }
+  const params = req.params
+  // sanitize input
+  let id = cleanId(params.id)
 
-  let allow = false
-  // let owner = 'system'
+  console.log('user', username, 'at IP', req.clientIp, operation, params, 'requested')
+  // check that this user owns the vertical in question, or that this vertical ID does not exist
 
   try {
-    // try to get from primary
-    options.baseUrl = process.env.MM_API_1
-    const response = await request(options)
+    const projection = {id: 1, owner: 1}
+    const vertical = await db.findOne('cumulus', 'vertical', {id}, {projection})
+    // check if found
+    if (!vertical) {
+      // return 404
+      const response = 'vertical with id = "' + id + '" not found.'
+      // vertical not found
+      console.log('user', username, 'at IP', req.clientIp, 'get vertical', req.params.id, 'failed', response)
+      // log it to db
+      logger.log({clientIp, host, path, url, method, operation, username, status: 404, params: req.params, response})
+      // return HTTP response
+      return res.status(404).send(response)
+    }
     // store a copy of the current owner. undefined owner = system
-    let owner = response.owner || 'system'
-    if (response.owner === req.user.username) {
+    let owner = vertical.owner || 'system'
+
+    let allow = false
+    if (vertical.owner === req.user.username) {
       // this user owns this vertical
       allow = true
-    } else if (req.user.admin && response.owner && response.owner !== 'system') {
+    } else if (req.user.admin && owner !== 'system') {
       // admins are allowed to delete user-owned verticals but not system-owned ones
       allow = true
+    } else {
+      //
+      allow = false
     }
-  } catch (e) {
-    // try secondary
-    options.baseUrl = process.env.MM_API_2
-    try {
-      const response = await request(options)
-      // store a copy of the current owner. undefined owner = system
-      owner = response.owner || 'system'
-      if (response.owner === req.user.username) {
-        // this user owns this vertical
-        allow = true
-      } else if (req.user.admin && response.owner && response.owner !== 'system') {
-        // admins are allowed to delete user-owned verticals but not system-owned ones
-        allow = true
-      }
-    } catch (e2) {
-      // return any other error code to the client
-      return res.status(e.statusCode || e2.statusCode).send(e.message + ' \r\n ' + e2.message)
+
+    if (!allow) {
+      // user is not allowed to delete this vertical
+      const message = `You are not authorized to delete this vertical. It is owned by "${owner}"`
+      console.log('user', username, 'at IP', req.clientIp, operation, req.params.id, `'failed - not authorized. It is owned by "${owner}"`)
+      logger.log({clientIp, host, path, url, method, operation, username, status: 403, details: message, params: req.params, response: message})
+      return res.status(403).send(message)
     }
-  }
-
-  if (!allow) {
-    // user is not allowed to delete this vertical
-    const message = `You are not authorized to delete this vertical. It is owned by "${owner}"`
-    console.log('user', username, 'at IP', req.clientIp, operation, req.params.id, `'failed - not authorized. It is owned by "${owner}"`)
-    logger.log({clientIp, host, path, url, method, operation, username, status: 403, details: message, parameters: req.params, response: message})
-    return res.status(403).send(message)
-  }
-  // else, user is allowed to delete vertical. continue.
-
-  // set up request options for deleting data
-  options.method = 'DELETE'
-  options.headers = {Authorization: `Bearer ${process.env.MM_TOKEN}`}
-
-  let primarySuccess
-  let secondarySuccess
-  // update primary
-  try {
-    options.baseUrl = process.env.MM_API_1
-    await request(options)
-    console.log('user', username, 'at IP', req.clientIp, operation, req.params.id, 'successful on primary server')
-    primarySuccess = true
+    // else, user is allowed to delete vertical. continue.
+    // remove from cloud mongo db
+    await db.removeOne('cumulus', 'vertical', {id})
+    console.log('user', username, 'at IP', req.clientIp, operation, req.params.id, 'successful')
+    // log it to db
+    logger.log({clientIp, host, path, url, method, operation, username, status: 202, params: req.params})
+    // return HTTP response
+    return res.status(202).send()
   } catch (e) {
-    console.log('user', username, 'at IP', req.clientIp, operation, req.params.id, 'failed on primary server', e.message)
-    primarySuccess = false
+    console.log('user', username, 'at IP', req.clientIp, operation, req.params.id, 'failed:', e.message)
+    // log it to db
+    logger.log({clientIp, host, path, url, method, operation, username, status: 500, params: req.params, response: e.message})
+    // return HTTP response
+    return res.status(500).send(e.message)
   }
-
-  // and also update secondary
-  try {
-    // set base URL to secondary
-    options.baseUrl = process.env.MM_API_2
-    await request(options)
-    console.log('user', username, 'at IP', req.clientIp, operation, req.params.id, 'successful on secondary server')
-    secondarySuccess = true
-  } catch (e) {
-    console.log('user', username, 'at IP', req.clientIp, operation, req.params.id, 'failed on secondary server', e.message)
-    secondarySuccess = false
-  }
-
-  let resultMessage
-  if (primarySuccess && secondarySuccess) {
-    resultMessage = operation + 'successful on the primary and secondary servers.'
-    status = 202
-  } else if (primarySuccess) {
-    // secondary failed
-    resultMessage = operation + 'successful on the primary server, but failed on the secondary server.'
-    status = 202
-  } else if (secondarySuccess) {
-    // primary failed
-    resultMessage = operation + 'successful on the secondary server, but failed on the primary server.'
-    status = 202
-  } else {
-    // both failed
-    resultMessage = operation + 'failed on the primary and secondary servers.'
-    status = 500
-  }
-
-  // log it to db
-  logger.log({clientIp, host, path, url, method, operation, username, status, details: resultMessage, parameters: req.params, response: resultMessage})
-  // return HTTP response
-  return res.status(status).send(resultMessage)
 })
 
 module.exports = router

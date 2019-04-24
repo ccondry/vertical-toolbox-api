@@ -1,18 +1,27 @@
 const MongoClient = require('mongodb').MongoClient
 
 const url = process.env.MONGO_URL
-const options = { useNewUrlParser: true }
+// keep a low pool size because this project runs on 2 servers per datacenter
+const clientOptions = { useNewUrlParser: true, poolSize: 3 }
 
-function find (db, collection, query) {
+// connection pool reference
+let client
+
+// create connection pool
+function connect () {
   return new Promise((resolve, reject) => {
+    if (!url) {
+      reject('process.env.MONGO_URL is not defined. please add this to the .env file.')
+    }
     try {
-      MongoClient.connect(url, options, function(connectError, client) {
-        if (connectError) return reject(connectError)
-        client.db(db).collection(collection).find(query).toArray(function (queryError, result) {
-          client.close()
-          if (queryError) reject(queryError)
-          else resolve(result)
-        })
+      MongoClient.connect(url, clientOptions, function(connectError, dbClient) {
+        if (connectError) {
+          reject(connectError)
+        } else {
+          console.log('cloud mongo db connected')
+          client = dbClient
+          resolve(dbClient)
+        }
       })
     } catch (e) {
       reject(e)
@@ -20,16 +29,28 @@ function find (db, collection, query) {
   })
 }
 
-function findOne (db, collection, query) {
+function find (db, collection, query = {}, projections) {
   return new Promise((resolve, reject) => {
     try {
-      MongoClient.connect(url, options, function(connectError, client) {
-        if (connectError) return reject(connectError)
-        client.db(db).collection(collection).findOne(query, function (queryError, result) {
-          client.close()
-          if (queryError) reject(queryError)
-          else resolve(result)
-        })
+      client.db(db).collection(collection).find(query).project(projections)
+      .toArray(function (queryError, doc) {
+        // check for error
+        if (queryError) reject(queryError)
+        // success
+        else resolve(doc)
+      })
+    } catch (e) {
+      reject(e)
+    }
+  })
+}
+
+function findOne (db, collection, query, options) {
+  return new Promise((resolve, reject) => {
+    try {
+      client.db(db).collection(collection).findOne(query, options, function (queryError, result) {
+        if (queryError) reject(queryError)
+        else resolve(result)
       })
     } catch (e) {
       reject(e)
@@ -40,63 +61,33 @@ function findOne (db, collection, query) {
 function upsert (db, collection, query, data) {
   return new Promise((resolve, reject) => {
     try {
-      MongoClient.connect(url, options, function(connectError, client) {
-        if (connectError) return reject(connectError)
-        client.db(db).collection(collection).findOneAndReplace(
-          query,
-          data,
-          { upsert: true },
-          function(queryError, doc) {
-            client.close()
-            if (queryError) reject(queryError)
-            else resolve(doc)
-          }
-        )
-      })
+      client.db(db).collection(collection).findOneAndReplace(
+        query,
+        data,
+        { upsert: true },
+        function(queryError, doc) {
+          if (queryError) reject(queryError)
+          else resolve(doc)
+        }
+      )
     } catch (e) {
       return reject(e)
     }
   })
 }
 
-function update (db, collection, query, data, field) {
+function update (db, collection, query, updates, options) {
   return new Promise((resolve, reject) => {
     try {
-      MongoClient.connect(url, options, function(connectError, client) {
-        if (connectError) return reject(connectError)
-        client.db(db).collection(collection).update(
-          query,
-          { $set: { [field]: data } },
-          { upsert: true },
-          function(queryError, doc) {
-            client.close()
-            if (queryError) reject(queryError)
-            else resolve(doc)
-          }
-        )
-      })
-    } catch (e) {
-      reject(e)
-    }
-  })
-}
-
-function addToSet (db, collection, query, data, field) {
-  return new Promise((resolve, reject) => {
-    try {
-      MongoClient.connect(url, options, function(connectError, client) {
-        if (connectError) return reject(connectError)
-        client.db(db).collection(collection).update(
-          query,
-          { $addToSet: { [field]: data } },
-          { upsert: true },
-          function(queryError, doc) {
-            client.close()
-            if (queryError) reject(queryError)
-            else resolve(doc)
-          }
-        )
-      })
+      client.db(db).collection(collection).update(
+        query,
+        updates,
+        options,
+        function(queryError, doc) {
+          if (queryError) reject(queryError)
+          else resolve(doc)
+        }
+      )
     } catch (e) {
       reject(e)
     }
@@ -106,17 +97,13 @@ function addToSet (db, collection, query, data, field) {
 function insertOne (db, collection, data) {
   return new Promise((resolve, reject) => {
     try {
-      MongoClient.connect(url, options, function(connectError, client) {
-        if (connectError) return reject(connectError)
-        client.db(db).collection(collection).insertOne(
-          data,
-          function(queryError, doc) {
-            client.close()
-            if (queryError) reject(queryError)
-            else resolve(doc)
-          }
-        )
-      })
+      client.db(db).collection(collection).insertOne(
+        data,
+        function(queryError, doc) {
+          if (queryError) reject(queryError)
+          else resolve(doc)
+        }
+      )
     } catch (e) {
       reject(e)
     }
@@ -126,29 +113,44 @@ function insertOne (db, collection, data) {
 function remove (db, collection, query) {
   return new Promise((resolve, reject) => {
     try {
-      MongoClient.connect(url, options, function(connectError, client) {
-        if (connectError) return reject(connectError)
-        client.db(db).collection(collection).remove(
-          query,
-          function(queryError, doc) {
-            client.close()
-            if (queryError) reject(queryError)
-            else resolve(doc)
-          }
-        )
-      })
+      client.db(db).collection(collection).remove(
+        query,
+        function(queryError, doc) {
+          if (queryError) reject(queryError)
+          else resolve(doc)
+        }
+      )
     } catch (e) {
       reject(e)
     }
   })
 }
 
+function removeOne (db, collection, query) {
+  return new Promise((resolve, reject) => {
+    try {
+      client.db(db).collection(collection)
+      .removeOne(query, function (err, result) {
+        // check for error
+        if (err) reject(err)
+        // success
+        else resolve(result)
+      })
+    } catch (e) {
+      // failed to get client
+      reject(e)
+    }
+  })
+}
+
 module.exports = {
+  client,
+  connect,
   find,
   findOne,
   update,
   upsert,
   insertOne,
   remove,
-  addToSet
+  removeOne
 }
