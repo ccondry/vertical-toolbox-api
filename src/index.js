@@ -18,10 +18,16 @@ const port = process.env.NODE_PORT || 3033
 
 // JWT path exceptions - these paths can be used without a JWT required
 const exceptions = {
-  path: [{
-    url: /\/api\/v1\/verticals\/endpoints$/i,
-    methods: ['GET']
-  }]
+  path: [
+    {
+      url: /\/api\/v1\/verticals\/endpoints$/i,
+      methods: ['GET']
+    },
+    {
+      url: /\/api\/v1\/verticals\/verticals$/i,
+      methods: ['GET']
+    }
+  ]
 }
 // init express app, and configure it
 const app = express()
