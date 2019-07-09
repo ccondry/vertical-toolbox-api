@@ -150,6 +150,14 @@ router.put('/:id', async function (req, res, next) {
   // set vertical.id = request URL parameter for vertical ID
   req.body.id = id
 
+  // make sure a regular user is not able to save a vertical as "system"
+  if (req.body.owner === 'system' && req.user.admin !== true) {
+    //
+    const message = `You are not authorized to save a vertical without your username as the owner."`
+    console.log('user', username, 'at IP', req.clientIp, operation, id, `'failed - user trying to save as owner = system."`)
+    logger.log({clientIp, host, path, url, method, operation, username, status: 403, details: req.body, params: req.params, response: message})
+    return res.status(403).send(message)
+  }
 
   try {
     // update or insert the data in the cloud mongo database
