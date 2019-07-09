@@ -26,6 +26,10 @@ const exceptions = {
     {
       url: /\/api\/v1\/verticals\/verticals$/i,
       methods: ['GET']
+    },
+    {
+      url: /\/api\/v1\/verticals\/verticals\/.*$/i,
+      methods: ['GET']
     }
   ]
 }
