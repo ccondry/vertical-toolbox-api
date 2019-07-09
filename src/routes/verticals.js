@@ -140,8 +140,8 @@ router.put('/:id', async function (req, res, next) {
 
   if (!allow) {
     // user is not allowed to update this vertical
-    const message = `You are not authorized to update this vertical. It is owned by "${owner}"`
-    console.log('user', username, 'at IP', req.clientIp, operation, req.params.id, `'failed - not authorized. It is owned by "${owner}"`)
+    const message = `You are not authorized to update this vertical. It is owned by "${vertical.owner}"`
+    console.log('user', username, 'at IP', req.clientIp, operation, req.params.id, `'failed - not authorized. It is owned by "${vertical.owner}"`)
     logger.log({clientIp, host, path, url, method, operation, username, status: 403, details: message, params: req.params, response: message})
     return res.status(403).send(message)
   }
