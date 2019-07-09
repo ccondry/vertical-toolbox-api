@@ -154,14 +154,14 @@ router.put('/:id', async function (req, res, next) {
   try {
     // update or insert the data in the cloud mongo database
     await db.upsert('cumulus', 'vertical', {id}, req.body)
-    console.log('user', username, 'at IP', req.clientIp, operation, req.params.id, 'successful')
+    console.log('user', username, 'at IP', req.clientIp, operation, id, 'successful')
     resultMessage = 'Successfully saved vertical config.'
     // log it to db
     logger.log({clientIp, host, path, url, method, operation, username, status: 202, details: resultMessage, params: req.params, response: resultMessage})
     // return HTTP response
     return res.status(202).send(resultMessage)
   } catch (e) {
-    console.log('user', username, 'at IP', req.clientIp, operation, req.params.id, 'failed:', e.message)
+    console.log('user', username, 'at IP', req.clientIp, operation, id, 'failed:', e.message)
     resultMessage = 'Failed to save vertical config.'
     // log it to db
     logger.log({clientIp, host, path, url, method, operation, username, status: 500, details: resultMessage, params: req.params, response: e.message})
