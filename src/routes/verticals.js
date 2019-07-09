@@ -5,7 +5,7 @@ const db = require('../models/mongodb')
 
 // get single vertical
 router.get('/:id', async function (req, res, next) {
-  const username = req.user ? req.user.username || 'anonymous'
+  const username = req.user ? req.user.username : 'anonymous'
   const clientIp = req.clientIp
   const method = req.method
   const host = req.get('host')
@@ -52,7 +52,7 @@ router.get('/:id', async function (req, res, next) {
 
 // get verticals list
 router.get('/', async function (req, res, next) {
-  const username = req.user ? req.user.username || 'anonymous'
+  const username = req.user ? req.user.username : 'anonymous'
   // const password = body.password
   const clientIp = req.clientIp
   const method = req.method
