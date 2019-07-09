@@ -117,7 +117,7 @@ router.put('/:id', async function (req, res, next) {
 
   // remove _id from vertical data retrieved from mongo
   const projection = {_id: 0}
-  // get existing vertical from cloud mongo db
+  // look for existing vertical
   const vertical = await db.findOne('cumulus', 'vertical', {id}, projection)
 
   let allow = false
