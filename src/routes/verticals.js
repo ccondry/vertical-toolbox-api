@@ -126,7 +126,7 @@ router.put('/:id', async function (req, res, next) {
     allow = true
     // set vertical owner in vertical data to requesting user's username
     req.body.owner = req.user.username
-  } else if (req.user.admin) {
+  } else if (req.user.admin === true) {
     // admins are allowed to update any vertical
     allow = true
     // but don't change the owner
