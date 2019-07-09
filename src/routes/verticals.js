@@ -148,7 +148,8 @@ router.put('/:id', async function (req, res, next) {
 
   // else, user is allowed to save vertical. continue.
   // set vertical.id = request URL parameter for vertical ID
-  req.body.id = req.params.id
+  req.body.id = id
+
 
   try {
     // update or insert the data in the cloud mongo database
