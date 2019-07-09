@@ -151,7 +151,7 @@ router.put('/:id', async function (req, res, next) {
   req.body.id = id
 
   // make sure a regular user is not able to save a vertical as "system"
-  if (req.body.owner === 'system' && req.user.admin !== true) {
+  if ((req.body.owner === 'system' || !req.body.owner) && req.user.admin !== true) {
     //
     const message = `You are not authorized to save a vertical without your username as the owner."`
     console.log('user', username, 'at IP', req.clientIp, operation, id, `'failed - user trying to save as owner = system."`)
