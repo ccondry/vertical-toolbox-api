@@ -95,7 +95,13 @@ router.post('/', async function (req, res, next) {
   }
 
   // log it to db
-  logger.log({clientIp, host, path, url, method, operation, username, status, details: resultMessage, query: req.query, parameters: req.params, response: mmAnswer1})
+  logger.log({
+    clientIp, host, path, url, method, operation, username, status,
+    details: resultMessage,
+    query: req.query,
+    parameters: req.params,
+    response: mmAnswer1
+  })
   // return the URL that we get back from the mmAnswer1 (or mmAnswer2 if that fails)
   return res.status(status).send(mmAnswer1 || mmAnswer2)
 })
