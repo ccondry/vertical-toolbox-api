@@ -10,6 +10,7 @@ const fs = require('fs')
 const expressJwt = require('express-jwt')
 const requestIp = require('request-ip')
 const logger = require('./models/logger')
+const atob = require('atob')
 
 // load the public cert for validating JWT
 const cert_pub = fs.readFileSync('./certs/rsa-public.pem')
@@ -50,7 +51,7 @@ app.use(expressJwt({ secret: cert_pub }).unless(exceptions))
 function parseJwt (token) {
   var base64Url = token.split('.')[1]
   var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
-  return JSON.parse(window.atob(base64))
+  return JSON.parse(atob(base64))
 }
 
 // extract real user info if user object has suJwt
