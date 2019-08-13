@@ -56,10 +56,10 @@ router.post('/', async function (req, res, next) {
   try {
     mmAnswer1 = await request(options)
     // console.log('request with options', options)
-    // console.log('user', username, 'at IP', req.clientIp, operation, req.params.id, 'successful on primary server')
+    console.log('user', username, 'at IP', req.clientIp, operation, 'successful on primary server')
     primarySuccess = true
   } catch (e) {
-    // console.log('user', username, 'at IP', req.clientIp, operation, req.params.id, 'failed on primary server', e.message)
+    console.log('user', username, 'at IP', req.clientIp, operation, 'failed on primary server', e.message)
     primarySuccess = false
   }
 
@@ -69,10 +69,10 @@ router.post('/', async function (req, res, next) {
     options.baseUrl = process.env.MM_API_2
     mmAnswer2 = await request(options)
     // console.log('request with options', options)
-    // console.log('user', username, 'at IP', req.clientIp, operation, req.params.id, 'successful on secondary server')
+    console.log('user', username, 'at IP', req.clientIp, operation, 'successful on secondary server')
     secondarySuccess = true
   } catch (e) {
-    // console.log('user', username, 'at IP', req.clientIp, operation, req.params.id, 'failed on secondary server', e.message)
+    console.log('user', username, 'at IP', req.clientIp, operation, 'failed on secondary server', e.message)
     secondarySuccess = false
   }
 
