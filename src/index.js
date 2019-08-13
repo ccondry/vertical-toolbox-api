@@ -35,8 +35,8 @@ const exceptions = {
 }
 // init express app, and configure it
 const app = express()
-// parse JSON body into req.body, up to 24mb
-app.use(bodyParser.json({limit: '24mb'}))
+// parse JSON body into req.body, up to 100mb
+app.use(bodyParser.json({limit: '100mb'}))
 // parse URL-encoded body into req.body, up to 100mb
 app.use(bodyParser.urlencoded({limit: '100mb', extended: true }))
 // enable CORS
