@@ -26,7 +26,7 @@ router.post('/', async function (req, res, next) {
   }
 
   console.log('uploading file for', username, 'to', vertical)
-  console.log('file data:', data)
+  // console.log('file data:', data)
   const i1 = data.indexOf('data:') + 'data:'.length
   const i2 = data.indexOf(';', i2)
   const mime = data.substring(i1, i2)
