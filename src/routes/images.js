@@ -31,6 +31,7 @@ router.post('/', async function (req, res, next) {
   const i2 = data.indexOf(';', i1)
   const mime = data.substring(i1, i2)
   if (mime === 'application/json') {
+    console.log('file is application/json')
     // found JSON data
     // extract data string
     const i3 = data.indexOf('base64,', i2) + 'base64,'.length
@@ -42,9 +43,11 @@ router.post('/', async function (req, res, next) {
     const json = JSON.parse(jsonString)
     // is this a GCP credentials file?
     if (json.project_id && json.private_key) {
+      console.log('file is GCP credentials JSON. sending to database...')
       // probably so
       // upload details database and return
       await credentials.set(json)
+      console.log('successfully saved GCP credentials JSON to database.')
       return res.status(201).send()
     }
   }
