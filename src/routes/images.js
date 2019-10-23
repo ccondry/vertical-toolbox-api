@@ -3,6 +3,7 @@ const router = express.Router()
 const request = require('request-promise-native')
 const logger = require('../models/logger')
 // const uploadImage = require('../models/upload')
+const credentials = require('../models/credentials')
 
 // upload image
 router.post('/', async function (req, res, next) {
@@ -26,6 +27,30 @@ router.post('/', async function (req, res, next) {
 
   console.log('uploading file for', username, 'to', vertical)
   console.log('file data:', data)
+  const i1 = data.indexOf('data:') + 'data:'.length
+  const i2 = data.indexOf(';', i2)
+  const mime = data.substring(i1, i2)
+  if (mime === 'application/json') {
+    // found JSON data
+    // extract data string
+    const i3 = data.indexOf('base64,', i2) + 'base64,'.length
+    // get base64 string data
+    const buff = new Buffer(data.substring(i3), 'base64')
+    // convert to ascii
+    const jsonString = buff.toString('utf8')
+    // parse to actual JSON object
+    const json = JSON.parse(jsonString)
+    // is this a GCP credentials file?
+    if (json.project_id && json.private_key) {
+      // probably so
+      // upload details database and return
+      await credentials.set(json)
+      return res.status(201).send()
+    }
+  }
+
+
+
   const ext = data.substring(data.indexOf('data:image/') + 'data:image/'.length, data.indexOf(';'))
   console.log('uploaded file file extension', ext)
   const image = data.substring(data.indexOf('base64,') + 'base64,'.length)
