@@ -12,7 +12,7 @@ router.post('/', async function (req, res, next) {
   const host = req.get('host')
   const path = req.originalUrl
   const url = req.protocol + '://' + host + path
-  const operation = 'upload image'
+  const operation = 'upload image or file'
 
   const node = req.body.node
   const name = req.body.name
@@ -24,11 +24,12 @@ router.post('/', async function (req, res, next) {
     return res.status(400).send('vertical is not valid. received', vertical)
   }
 
-  console.log('uploading image for', username, 'to', vertical)
+  console.log('uploading file for', username, 'to', vertical)
+  console.log('file data:', data)
   const ext = data.substring(data.indexOf('data:image/') + 'data:image/'.length, data.indexOf(';'))
-  console.log('uploaded image file extension', ext)
+  console.log('uploaded file file extension', ext)
   const image = data.substring(data.indexOf('base64,') + 'base64,'.length)
-  console.log('got image data. length =', image.length)
+  console.log('got file data. length =', image.length)
 
   const newFilePath = username + '/' + vertical + '/' + name + '.' + ext
 
