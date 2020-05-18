@@ -1,7 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const request = require('request-promise-native')
-const logger = require('../models/logger')
+// const logger = require('../models/logger')
 
 // get usage stats
 router.get('/', async function (req, res, next) {
@@ -17,7 +17,7 @@ router.get('/', async function (req, res, next) {
 
   if (!req.user.admin) {
     // log it to db
-    logger.log({clientIp, host, path, url, method, operation, username, status: 403, details: 'only admins can view usage stats.', parameters: req.params, query: req.query})
+    // logger.log({clientIp, host, path, url, method, operation, username, status: 403, details: 'only admins can view usage stats.', parameters: req.params, query: req.query})
     return res.status(403).send()
   }
 
@@ -79,7 +79,7 @@ router.get('/', async function (req, res, next) {
       // get meta info about the response
       // log it to db
       loggerParams.response = `(CSV data with ${csv.rows} rows)`
-      logger.log(loggerParams)
+      // logger.log(loggerParams)
       // return HTTP response
       return res.status(200).send(csv.data)
     } else {
@@ -98,14 +98,14 @@ router.get('/', async function (req, res, next) {
       }
       // log it to db
       loggerParams.response = `(JSON ${dataType} with ${dataLength} properties)`
-      logger.log(loggerParams)
+      // logger.log(loggerParams)
       // return HTTP response
       return res.status(200).send(response)
     }
   } catch (error) {
     console.log('user', username, 'at IP', req.clientIp, operation, req.params.id, 'error', error.statusCode, 'on', options.baseUrl, error.message)
     // log error to db
-    logger.log({level: 'error', clientIp, host, path, url, method, operation, username, status: 500, details: 'get usage stats failed on ' + options.baseUrl, parameters: req.params, response: error.message})
+    // logger.log({level: 'error', clientIp, host, path, url, method, operation, username, status: 500, details: 'get usage stats failed on ' + options.baseUrl, parameters: req.params, response: error.message})
     // return error message
     return res.status(500).send(error.message)
   }
