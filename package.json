@@ -1,6 +1,6 @@
 {
   "name": "vertical-toolbox-api",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "description": "dCloud Cumulus Vertical configuration toolbox HTTP REST API",
   "main": "src/index.js",
   "directories": {
