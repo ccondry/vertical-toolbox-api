@@ -29,7 +29,7 @@ router.get('/:id', async function (req, res, next) {
       const dataLength = Object.keys(vertical).length
       console.log('user', username, 'at IP', req.clientIp, 'get vertical', req.params.id, 'successful')
       // log it to db
-      logger.log({clientIp, host, path, url, method, operation, username, status: 200, details: 'get vertical successful', params: req.params, response: `(JSON ${dataType} with ${dataLength} properties)`})
+      // logger.log({clientIp, host, path, url, method, operation, username, status: 200, details: 'get vertical successful', params: req.params, response: `(JSON ${dataType} with ${dataLength} properties)`})
       // return HTTP response
       return res.status(200).send(vertical)
     } else {
@@ -37,7 +37,7 @@ router.get('/:id', async function (req, res, next) {
       // vertical not found
       console.log('user', username, 'at IP', req.clientIp, 'get vertical', req.params.id, 'failed', response)
       // log it to db
-      logger.log({clientIp, host, path, url, method, operation, username, status: 404, details: 'get vertical failed', params: req.params, response})
+      // logger.log({clientIp, host, path, url, method, operation, username, status: 404, details: 'get vertical failed', params: req.params, response})
       // return HTTP response
       return res.status(404).send(response)
     }
@@ -45,7 +45,7 @@ router.get('/:id', async function (req, res, next) {
     // failed on secondary also
     console.log('user', username, 'at IP', req.clientIp, 'get vertical', req.params.id, 'error', e.message)
     // log error to db
-    logger.log({level: 'error', clientIp, host, path, url, method, operation, username, status: 500, details: 'get vertical failed', params: req.params, response: e.message})
+    // logger.log({level: 'error', clientIp, host, path, url, method, operation, username, status: 500, details: 'get vertical failed', params: req.params, response: e.message})
     return res.status(500).send(e.message)
   }
 })
@@ -74,13 +74,13 @@ router.get('/', async function (req, res, next) {
     const dataLength = verticals.length
     console.log('user', username, 'at IP', req.clientIp, 'get verticals', 'successful')
     // log it to db
-    logger.log({clientIp, host, path, url, method, operation, username, status: 200, details: 'get verticals successful', params: req.params, query, response: `(JSON ${dataType} with ${dataLength} properties)`})
+    // logger.log({clientIp, host, path, url, method, operation, username, status: 200, details: 'get verticals successful', params: req.params, query, response: `(JSON ${dataType} with ${dataLength} properties)`})
     // return HTTP response
     return res.status(200).send(verticals)
   } catch (error) {
     console.log('user', username, 'at IP', req.clientIp, 'get verticals', 'error:', error.message)
     // log error to db
-    logger.log({level: 'error', clientIp, host, path, url, method, operation, username, status: 500, details: 'get verticals failed', query, response: error.message})
+    // logger.log({level: 'error', clientIp, host, path, url, method, operation, username, status: 500, details: 'get verticals failed', query, response: error.message})
     // return HTTP response
     return res.status(500).send(error.message)
   }
@@ -142,7 +142,7 @@ router.put('/:id', async function (req, res, next) {
     // user is not allowed to update this vertical
     const message = `You are not authorized to update this vertical. It is owned by "${vertical.owner}"`
     console.log('user', username, 'at IP', req.clientIp, operation, id, `'failed - not authorized. It is owned by "${vertical.owner}"`)
-    logger.log({clientIp, host, path, url, method, operation, username, status: 403, details: message, params: req.params, response: message})
+    // logger.log({clientIp, host, path, url, method, operation, username, status: 403, details: message, params: req.params, response: message})
     return res.status(403).send(message)
   }
 
@@ -155,7 +155,7 @@ router.put('/:id', async function (req, res, next) {
     //
     const message = `You are not authorized to save a vertical without your username as the owner."`
     console.log('user', username, 'at IP', req.clientIp, operation, id, `'failed - user trying to save as owner = system."`)
-    logger.log({clientIp, host, path, url, method, operation, username, status: 403, details: req.body, params: req.params, response: message})
+    // logger.log({clientIp, host, path, url, method, operation, username, status: 403, details: req.body, params: req.params, response: message})
     return res.status(403).send(message)
   }
 
@@ -165,14 +165,14 @@ router.put('/:id', async function (req, res, next) {
     console.log('user', username, 'at IP', req.clientIp, operation, id, 'successful')
     resultMessage = 'Successfully saved vertical config.'
     // log it to db
-    logger.log({clientIp, host, path, url, method, operation, username, status: 202, details: resultMessage, params: req.params, response: resultMessage})
+    // logger.log({clientIp, host, path, url, method, operation, username, status: 202, details: resultMessage, params: req.params, response: resultMessage})
     // return HTTP response
     return res.status(202).send(resultMessage)
   } catch (e) {
     console.log('user', username, 'at IP', req.clientIp, operation, id, 'failed:', e.message)
     resultMessage = 'Failed to save vertical config.'
     // log it to db
-    logger.log({clientIp, host, path, url, method, operation, username, status: 500, details: resultMessage, params: req.params, response: e.message})
+    // logger.log({clientIp, host, path, url, method, operation, username, status: 500, details: resultMessage, params: req.params, response: e.message})
     // return HTTP response
     return res.status(500).send(e.message)
   }
@@ -204,7 +204,7 @@ router.delete('/:id', async function (req, res, next) {
       // vertical not found
       console.log('user', username, 'at IP', req.clientIp, 'get vertical', req.params.id, 'failed', response)
       // log it to db
-      logger.log({clientIp, host, path, url, method, operation, username, status: 404, params: req.params, response})
+      // logger.log({clientIp, host, path, url, method, operation, username, status: 404, params: req.params, response})
       // return HTTP response
       return res.status(404).send(response)
     }
@@ -227,7 +227,7 @@ router.delete('/:id', async function (req, res, next) {
       // user is not allowed to delete this vertical
       const message = `You are not authorized to delete this vertical. It is owned by "${owner}"`
       console.log('user', username, 'at IP', req.clientIp, operation, req.params.id, `'failed - not authorized. It is owned by "${owner}"`)
-      logger.log({clientIp, host, path, url, method, operation, username, status: 403, details: message, params: req.params, response: message})
+      // logger.log({clientIp, host, path, url, method, operation, username, status: 403, details: message, params: req.params, response: message})
       return res.status(403).send(message)
     }
     // else, user is allowed to delete vertical. continue.
@@ -235,13 +235,13 @@ router.delete('/:id', async function (req, res, next) {
     await db.removeOne('cumulus', 'vertical', {id})
     console.log('user', username, 'at IP', req.clientIp, operation, req.params.id, 'successful')
     // log it to db
-    logger.log({clientIp, host, path, url, method, operation, username, status: 202, params: req.params})
+    // logger.log({clientIp, host, path, url, method, operation, username, status: 202, params: req.params})
     // return HTTP response
     return res.status(202).send()
   } catch (e) {
     console.log('user', username, 'at IP', req.clientIp, operation, req.params.id, 'failed:', e.message)
     // log it to db
-    logger.log({clientIp, host, path, url, method, operation, username, status: 500, params: req.params, response: e.message})
+    // logger.log({clientIp, host, path, url, method, operation, username, status: 500, params: req.params, response: e.message})
     // return HTTP response
     return res.status(500).send(e.message)
   }
