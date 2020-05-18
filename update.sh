@@ -27,7 +27,5 @@ else
     fi
   else
     echo "failed to pull repo"
-    echo "trying reset to origin/master"
-    git reset --hard origin/master
   fi
 fi
