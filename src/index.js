@@ -7,7 +7,7 @@ const cors = require('cors')
 const fs = require('fs')
 const expressJwt = require('express-jwt')
 const requestIp = require('request-ip')
-const logger = require('./models/logger')
+// const logger = require('./models/logger')
 const atob = require('atob')
 
 // load the public cert for validating JWT
@@ -87,7 +87,7 @@ app.use(function(err, req, res, next) {
       // there was an error
       console.log('user at IP', clientIp, 'attempting to', method, 'at path', path, 'error', err.status, err.name, err.message)
       // log to db
-      logger.log({clientIp, host, path, url, method, status: err.status, details: err.name, parameters: req.params, queryString: req.qs, response: err.message})
+      // logger.log({clientIp, host, path, url, method, status: err.status, details: err.name, parameters: req.params, queryString: req.qs, response: err.message})
       // stop processing
       return
     } else {
