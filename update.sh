@@ -27,7 +27,7 @@ else
     fi
   else
     echo "failed to pull repo"
-    echo "trying to remove package-lock.json and try on next iteration"
-    rm package-lock.json
+    echo "trying reset to origin/master"
+    git reset --hard origin/master
   fi
 fi
