@@ -1,7 +1,5 @@
 // load environment file
 require('dotenv').load()
-// init cloud database connection pool
-require('./models/mongodb').connect().catch(e => console.error(e))
 
 const express = require('express')
 const bodyParser = require('body-parser')
