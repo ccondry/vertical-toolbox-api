@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const logger = require('../models/logger')
+// const logger = require('../models/logger')
 const db = require('../models/mongodb')
 
 // get single vertical
