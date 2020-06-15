@@ -130,7 +130,7 @@ router.post('/', async function (req, res, next) {
   //   response: mmAnswer1
   // })
   // return the URL that we get back from the mmAnswer1 (or mmAnswer2 if that fails)
-  return res.status(status).send(mmAnswer1 || mmAnswer2)
+  return res.status(status).send(resultMessage)
 })
 
 module.exports = router
