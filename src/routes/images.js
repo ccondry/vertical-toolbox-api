@@ -8,14 +8,14 @@ const credentials = require('../models/credentials')
 // upload image
 router.post('/', async function (req, res, next) {
   const username = req.user.username
-  const clientIp = req.clientIp
-  const method = req.method
+  // const clientIp = req.clientIp
+  // const method = req.method
   const host = req.get('host')
   const path = req.originalUrl
-  const url = req.protocol + '://' + host + path
+  // const url = req.protocol + '://' + host + path
   const operation = 'upload image or file'
 
-  const node = req.body.node
+  // const node = req.body.node
   const name = req.body.name
   const vertical = req.body.vertical || ''
   const data = req.body.data
