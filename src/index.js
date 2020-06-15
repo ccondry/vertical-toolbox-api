@@ -19,7 +19,6 @@ const port = process.env.NODE_PORT || 3033
 const exceptions = {
   path: [
     {
-      url: /\/api\/v1\/verticals\/endpoints$/i,
       methods: ['GET']
     },
     {
@@ -105,8 +104,6 @@ app.use(function(err, req, res, next) {
 Routes
 *****/
 
-// REST endpoint URLs
-app.use('/api/v1/verticals/endpoints', require('./routes/endpoints'))
 // vertical configs
 app.use('/api/v1/verticals/verticals', require('./routes/verticals'))
 // image uploader
