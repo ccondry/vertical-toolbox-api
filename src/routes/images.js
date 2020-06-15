@@ -52,8 +52,6 @@ router.post('/', async function (req, res, next) {
     }
   }
 
-
-
   const ext = data.substring(data.indexOf('data:image/') + 'data:image/'.length, data.indexOf(';'))
   console.log('uploaded file file extension', ext)
   const image = data.substring(data.indexOf('base64,') + 'base64,'.length)
