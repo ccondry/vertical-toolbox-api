@@ -19,6 +19,7 @@ const port = process.env.NODE_PORT || 3033
 const exceptions = {
   path: [
     {
+      url: /\/api\/v1\/verticals\/version$/i,
       methods: ['GET']
     },
     {
@@ -104,6 +105,8 @@ app.use(function(err, req, res, next) {
 Routes
 *****/
 
+// this version
+app.use('/api/v1/verticals/version', require('./routes/version'))
 // vertical configs
 app.use('/api/v1/verticals/verticals', require('./routes/verticals'))
 // image uploader
