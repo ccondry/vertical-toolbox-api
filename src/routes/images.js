@@ -5,7 +5,7 @@ const request = require('request-promise-native')
 // const uploadImage = require('../models/upload')
 const credentials = require('../models/credentials')
 
-// upload image
+// upload image or html file for a vertical/brand
 router.post('/', async function (req, res, next) {
   const username = req.user.username
   // const clientIp = req.clientIp
