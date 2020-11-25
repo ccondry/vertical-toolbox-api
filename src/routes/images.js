@@ -27,9 +27,11 @@ router.post('/', async function (req, res, next) {
 
   console.log('uploading file for', username, 'to', vertical)
   // console.log('file data:', data)
+  // find the mime type
   const i1 = data.indexOf('data:') + 'data:'.length
   const i2 = data.indexOf(';', i1)
   const mime = data.substring(i1, i2)
+  // JSON?
   if (mime === 'application/json') {
     console.log('file is application/json')
     // found JSON data
@@ -45,6 +47,8 @@ router.post('/', async function (req, res, next) {
     if (json.project_id && json.private_key) {
       console.log('file is GCP credentials JSON. sending to database...')
       // probably so
+      // set owner
+      json.owner = req.user.username
       // upload details database and return
       await credentials.set(json)
       console.log('successfully saved GCP credentials JSON to database.')
