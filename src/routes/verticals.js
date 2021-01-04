@@ -184,7 +184,9 @@ router.post('/', async function (req, res, next) {
   console.log('user', username, 'at IP', req.clientIp, operation, name, 'requested')
 
   req.body.owner = req.user.username
+  // remove any IDs that the UI might provide - they will be generated
   delete req.body._id
+  delete req.body.id
 
   try {
     // create data in the cloud mongo database
