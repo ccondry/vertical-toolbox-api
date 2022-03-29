@@ -135,7 +135,7 @@ router.put('/:id', async function (req, res, next) {
   } else if (vertical.owner.toLowerCase() === req.user.username.toLowerCase()) {
     // vertical exists and requesting user owns this vertical
     allow = true
-  } else if (vertical.ownerEmail && vertical.ownerEmail === req.user.email) {
+  } else if (vertical.ownerEmail && vertical.ownerEmail.toLowerCase() === req.user.email.toLowerCase()) {
     // vertical exists and requesting user owns this vertical
     allow = true
   } else {
@@ -253,7 +253,7 @@ router.delete('/:id', async function (req, res, next) {
     let allow = false
     if (
       vertical.owner.toLowerCase() === req.user.username.toLowerCase() ||
-      (vertical.ownerEmail && vertical.ownerEmail === req.user.email)
+      (vertical.ownerEmail && vertical.ownerEmail.toLowerCase() === req.user.email.toLowerCase())
     ) {
       // this user owns this vertical
       allow = true
