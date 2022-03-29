@@ -126,18 +126,23 @@ router.put('/:id', async function (req, res, next) {
     allow = true
     // set vertical owner in vertical data to requesting user's username
     req.body.owner = req.user.username
+    // set ownerEmail field
+    req.body.ownerEmail = req.user.email
   } else if (req.user.admin === true) {
     // admins are allowed to update any vertical
     allow = true
     // but don't change the owner
-  } else if (vertical.owner === req.user.username) {
+  } else if (vertical.owner.toLowerCase() === req.user.username.toLowerCase()) {
+    // vertical exists and requesting user owns this vertical
+    allow = true
+  } else if (vertical.ownerEmail && vertical.ownerEmail === req.user.email) {
     // vertical exists and requesting user owns this vertical
     allow = true
   } else {
     // vertical exists, user is not admin, and user does not own this vertical
     allow = false
   }
-
+  
   if (!allow) {
     // user is not allowed to update this vertical
     const message = `You are not authorized to update this vertical. It is owned by "${vertical.owner}"`
@@ -184,6 +189,7 @@ router.post('/', async function (req, res, next) {
   console.log('user', username, 'at IP', req.clientIp, operation, name, 'requested')
 
   req.body.owner = req.user.username
+  req.body.ownerEmail = req.user.email
   // remove any IDs that the UI might provide - they will be generated
   delete req.body._id
   delete req.body.id
@@ -245,7 +251,10 @@ router.delete('/:id', async function (req, res, next) {
     let owner = vertical.owner || 'system'
 
     let allow = false
-    if (vertical.owner === req.user.username) {
+    if (
+      vertical.owner.toLowerCase() === req.user.username.toLowerCase() ||
+      (vertical.ownerEmail && vertical.ownerEmail === req.user.email)
+    ) {
       // this user owns this vertical
       allow = true
     } else if (req.user.admin && owner !== 'system') {
