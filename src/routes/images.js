@@ -79,10 +79,10 @@ router.post('/', async function (req, res, next) {
   }
 
   let mmAnswer1
-  let mmAnswer2
+  // let mmAnswer2
 
   let primarySuccess
-  let secondarySuccess
+  // let secondarySuccess
   // update primary
   try {
     mmAnswer1 = await request(options)
@@ -95,30 +95,35 @@ router.post('/', async function (req, res, next) {
   }
 
   // and also update secondary
-  try {
-    // set base URL to secondary
-    options.baseUrl = process.env.MM_API_2
-    mmAnswer2 = await request(options)
-    // console.log('request with options', options)
-    console.log('user', username, 'at IP', req.clientIp, operation, 'successful on secondary server')
-    secondarySuccess = true
-  } catch (e) {
-    console.log('user', username, 'at IP', req.clientIp, operation, 'failed on secondary server', e.message)
-    secondarySuccess = false
-  }
+  // try {
+  //   // set base URL to secondary
+  //   options.baseUrl = process.env.MM_API_2
+  //   mmAnswer2 = await request(options)
+  //   // console.log('request with options', options)
+  //   console.log('user', username, 'at IP', req.clientIp, operation, 'successful on secondary server')
+  //   secondarySuccess = true
+  // } catch (e) {
+  //   console.log('user', username, 'at IP', req.clientIp, operation, 'failed on secondary server', e.message)
+  //   secondarySuccess = false
+  // }
 
   let resultMessage
-  if (primarySuccess && secondarySuccess) {
-    resultMessage = 'Successfully uploaded image on the primary and secondary servers.'
-    status = 201
-  } else if (primarySuccess) {
+  let status
+  if (primarySuccess) {
     // secondary failed
     resultMessage = 'Successfully uploaded image on the primary server, but failed to upload image on the secondary server.'
     status = 201
-  } else if (secondarySuccess) {
-    // primary failed
-    resultMessage = 'Successfully uploaded image on the secondary server, but failed to upload image on the primary server.'
-    status = 201
+  // if (primarySuccess && secondarySuccess) {
+  //   resultMessage = 'Successfully uploaded image on the primary and secondary servers.'
+  //   status = 201
+  // } else if (primarySuccess) {
+  //   // secondary failed
+  //   resultMessage = 'Successfully uploaded image on the primary server, but failed to upload image on the secondary server.'
+  //   status = 201
+  // } else if (secondarySuccess) {
+  //   // primary failed
+  //   resultMessage = 'Successfully uploaded image on the secondary server, but failed to upload image on the primary server.'
+  //   status = 201
   } else {
     // both failed
     resultMessage = 'Failed to upload image on the primary and secondary servers.'
@@ -136,7 +141,8 @@ router.post('/', async function (req, res, next) {
   // return the URL that we get back from the mmAnswer1 (or mmAnswer2 if that fails)
   return res.status(status).send({
     message: resultMessage,
-    url: mmAnswer1 || mmAnswer2
+    // url: mmAnswer1 || mmAnswer2
+    url: mmAnswer1
   })
 })
 
