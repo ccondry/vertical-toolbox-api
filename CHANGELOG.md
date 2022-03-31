@@ -4,6 +4,14 @@ Version numbers are semver-compatible dates in YYYY.MM.DD-X format,
 where X is the revision number.
 
 
+# 2022.3.30
+
+### Fixes
+
+* **Upload File:** Only upload files to mm1, not mm1 and mm2. This fixes 504
+error being returned even though uploading succeeded.
+
+
 # 2022.3.29
 
 ### Features
