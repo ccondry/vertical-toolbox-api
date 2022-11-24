@@ -4,6 +4,13 @@ Version numbers are semver-compatible dates in YYYY.MM.DD-X format,
 where X is the revision number.
 
 
+# 2022.11.24
+
+### Fixes
+* **List Verticals:** Require JWT for list verticals, only return verticals
+belonging to requesting user or owner in query.
+
+
 # 2022.3.30
 
 ### Fixes
