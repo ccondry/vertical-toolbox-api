@@ -52,61 +52,56 @@ router.get('/:id', async function (req, res, next) {
 
 // get verticals list
 router.get('/', async function (req, res, next) {
-  const username = req.user ? req.user.username : 'anonymous'
-  // const password = body.password
-  const clientIp = req.clientIp
-  const method = req.method
-  const host = req.get('host')
-  const path = req.originalUrl
-  const url = req.protocol + '://' + host + path
   const operation = 'get verticals'
-  const query = req.query
-
-  console.log('user', username, 'at IP', req.clientIp, operation, 'requested with query', query)
+  console.log('user', req.user.email, 'at IP', req.clientIp, operation, 'requested with query', req.query)
 
   try {
     // get only id, name, owner fields
     const projection = {id: 1, name: 1, owner: 1}
+    let query
+    // owner query provided?
+    if (req.query.owner) {
+      // find only verticals owned by system or by the specified username
+      query = {
+        owner: {
+          $in: [null, 'system', req.query.owner]
+        }
+      }
+    } else {
+      // find only verticals owned by system or the requesting user
+      query = {
+        owner: {
+          $in: [null, 'system', req.user.username]
+        }
+      }
+    }
+  
     // get vertical from cloud mongo db
-    const verticals = await db.find('cumulus', 'vertical', {}, projection)
-    // get meta info about the response
-    const dataType = 'array'
-    const dataLength = verticals.length
-    console.log('user', username, 'at IP', req.clientIp, 'get verticals', 'successful')
-    // log it to db
-    // logger.log({clientIp, host, path, url, method, operation, username, status: 200, details: 'get verticals successful', params: req.params, query, response: `(JSON ${dataType} with ${dataLength} properties)`})
-    // return HTTP response
+    const verticals = await db.find('cumulus', 'vertical', query, projection)
     return res.status(200).send(verticals)
   } catch (error) {
-    console.log('user', username, 'at IP', req.clientIp, 'get verticals', 'error:', error.message)
-    // log error to db
-    // logger.log({level: 'error', clientIp, host, path, url, method, operation, username, status: 500, details: 'get verticals failed', query, response: error.message})
+    console.log('user', req.user.email, 'at IP', req.clientIp, 'get verticals', 'error:', error.message)
     // return HTTP response
-    return res.status(500).send(error.message)
+    return res.status(500).send({message: error.message})
   }
 })
 
-function escapeRegExp(str) {
-    return str.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1");
-}
+// function escapeRegExp(str) {
+//     return str.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1");
+// }
 
 function cleanId (id) {
-  let ret
+  let ret = id || ''
   // force ID to be lower-case
-  ret = id.toLowerCase()
+  ret = ret.toLowerCase()
   // replace spaces with hyphens, and remove all other non-alphanumerics
-  ret = id.replace(/ /g, '-').replace(/[^a-zA-Z0-9_-]+/g, '')
+  ret = ret.replace(/ /g, '-').replace(/[^a-zA-Z0-9_-]+/g, '')
   return ret
 }
 
 // save vertical
 router.put('/:id', async function (req, res, next) {
   const username = req.user.username
-  const clientIp = req.clientIp
-  const method = req.method
-  const host = req.get('host')
-  const path = req.originalUrl
-  const url = req.protocol + '://' + host + path
   const operation = 'save vertical'
   // sanitize input
   let id = cleanId(req.params.id)
@@ -148,7 +143,7 @@ router.put('/:id', async function (req, res, next) {
     const message = `You are not authorized to update this vertical. It is owned by "${vertical.owner}"`
     console.log('user', username, 'at IP', req.clientIp, operation, id, `'failed - not authorized. It is owned by "${vertical.owner}"`)
     // logger.log({clientIp, host, path, url, method, operation, username, status: 403, details: message, params: req.params, response: message})
-    return res.status(403).send(message)
+    return res.status(403).send({message})
   }
 
   // else, user is allowed to save vertical. continue.
@@ -161,23 +156,24 @@ router.put('/:id', async function (req, res, next) {
     const message = `You are not authorized to save a vertical without your username as the owner."`
     console.log('user', username, 'at IP', req.clientIp, operation, id, `'failed - user trying to save as owner = system."`)
     // logger.log({clientIp, host, path, url, method, operation, username, status: 403, details: req.body, params: req.params, response: message})
-    return res.status(403).send(message)
+    return res.status(403).send({message})
   }
 
   try {
     // update or insert the data in the cloud mongo database
     await db.upsert('cumulus', 'vertical', {id}, req.body)
     console.log('user', username, 'at IP', req.clientIp, operation, id, 'successful')
-    resultMessage = 'Successfully saved vertical config.'
+    const message = 'Successfully saved vertical config.'
     // log it to db
     // logger.log({clientIp, host, path, url, method, operation, username, status: 202, details: resultMessage, params: req.params, response: resultMessage})
     // return HTTP response
-    return res.status(202).send(resultMessage)
+    return res.status(202).send({message})
   } catch (e) {
     console.log('user', username, 'at IP', req.clientIp, operation, id, 'failed:', e.message)
-    resultMessage = 'Failed to save vertical config.'
+    const message = 'Failed to save vertical config.'
     // log it to db
     // logger.log({clientIp, host, path, url, method, operation, username, status: 500, details: resultMessage, params: req.params, response: e.message})
+    return res.status(500).send({message})
   }
 })
 
