@@ -4,6 +4,13 @@ Version numbers are semver-compatible dates in YYYY.MM.DD-X format,
 where X is the revision number.
 
 
+# 2023.10.31
+
+### Fixes
+* **Save Vertical:** Fix saving old verticals with user-created IDs.
+* **Delete Vertical:** Fix deleting old verticals with user-created IDs.
+
+
 # 2022.11.24
 
 ### Fixes
