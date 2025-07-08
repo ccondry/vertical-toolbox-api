@@ -74,7 +74,9 @@ router.post('/', async function (req, res, next) {
     json: true,
     body: {
       path: newFilePath,
-      data: image
+      data: image,
+      contentType: 'image/' + ext,
+      encoding: 'base64',
     }
   }
 
