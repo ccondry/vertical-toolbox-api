@@ -4,6 +4,15 @@ Version numbers are semver-compatible dates in YYYY.MM.DD-X format,
 where X is the revision number.
 
 
+# 2025.7.8
+
+### Added
+* **Deployment:** Added Dockerfile for docker deployment.
+
+### Updated
+* **File Upload:** Add contentType and encoding data to file uploads.
+
+
 # 2023.10.31
 
 ### Fixes
